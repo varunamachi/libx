@@ -12,6 +12,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/rs/zerolog"
 	_ "github.com/urfave/cli/v2"
+	_ "go.mongodb.org/mongo-driver/mongo"
 )
 
 func main() {
