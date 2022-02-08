@@ -3,24 +3,18 @@ package httpx
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/varunamachi/libx/env"
+	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/rt"
 )
 
-//getJWTKey - gives a unique JWT key
-func getJWTKey() string {
-	jwtKey := os.Getenv("SAUSE_JWT_KEY")
-	if len(jwtKey) == 0 {
-		jwtKey = uuid.NewString()
-	}
-	return jwtKey
-}
+const (
+	EnvPrintAllAccess = "VLIBX_HTTP_PRINT_ALL_ACCESS"
+)
 
 //getToken - gets token from context or from header
 func getToken(ctx echo.Context) (token *jwt.Token, err error) {
@@ -36,7 +30,7 @@ func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 		if len(header) > authSchemeLen {
 			tokStr := header[authSchemeLen+1:]
 			keyFunc := func(t *jwt.Token) (interface{}, error) {
-				return getJWTKey(), nil
+				return auth.GetJWTKey(), nil
 			}
 			token, err = jwt.Parse(tokStr, keyFunc)
 		} else {
@@ -58,7 +52,7 @@ func retrieveUserId(ctx echo.Context) (string, error) {
 		return "", fmt.Errorf("invalid claims in JWT")
 	}
 
-	userId, ok := claims["userID"].(string)
+	userId, ok := claims["userId"].(string)
 	if !ok {
 		return "", fmt.Errorf("couldnt find userId in token")
 	}
@@ -111,7 +105,7 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 		return func(etx echo.Context) error {
 			err := next(etx)
 			if err == nil {
-				if env.GetConfig().PrintAllAccess {
+				if rt.EnvBool(EnvPrintAllAccess, false) {
 					status := etx.Response().Status
 					log.Debug().
 						Int("statusCode", status).
