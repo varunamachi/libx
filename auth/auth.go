@@ -24,7 +24,7 @@ type Authenticator interface {
 }
 
 type UserGetter interface {
-	GetUser(gtx context.Context, authData AuthData) (*User, error)
+	GetUser(gtx context.Context, authData AuthData) (User, error)
 }
 
 type UserAuthenticator interface {
@@ -38,7 +38,7 @@ type UserAuthenticator interface {
 func Login(
 	gtx context.Context,
 	authr UserAuthenticator,
-	data AuthData) (*User, string, error) {
+	data AuthData) (User, string, error) {
 	if err := authr.Authenticate(gtx, data); err != nil {
 		return nil, "", errx.Errf(ErrAuthentication, err.Error())
 	}
@@ -50,7 +50,7 @@ func Login(
 
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["userId"] = user.Id
+	claims["userId"] = user.Id()
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	signed, err := token.SignedString(GetJWTKey())

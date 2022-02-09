@@ -26,28 +26,38 @@ func (r Role) EqualOrAbove(another Role) bool {
 	return r == another
 }
 
-type User struct {
-	SeqId       int           `json:"seqId" db:"seqId" bson:"seqId"`
-	Id          string        `json:"id" db:"id" bson:"id"`
-	EMail       string        `json:"email" db:"email" bson:"email"`
-	FirstName   string        `json:"firstName" db:"firstName" bson:"firstName"`
-	LastName    string        `json:"lastName" db:"lastName" bson:"lastName"`
-	Role        Role          `json:"role" db:"role" bson:"role"`
-	GroupsIDs   []string      `json:"groups" bson:"groups"`
-	Permissions PermissionSet `json:"permissions" bson:"permissions"`
+// type User struct {
+// 	SeqId       int           `json:"seqId" db:"seqId" bson:"seqId"`
+// 	Id          string        `json:"id" db:"id" bson:"id"`
+// 	EMail       string        `json:"email" db:"email" bson:"email"`
+// 	FirstName   string        `json:"firstName" db:"firstName" bson:"firstName"`
+// 	LastName    string        `json:"lastName" db:"lastName" bson:"lastName"`
+// 	Role        Role          `json:"role" db:"role" bson:"role"`
+// 	GroupsIDs   []string      `json:"groups" bson:"groups"`
+// 	Permissions PermissionSet `json:"permissions" bson:"permissions"`
+// }
+
+func HasRole(u User, role Role) bool {
+	return role.EqualOrAbove(u.Role())
 }
 
-func (u *User) HasRole(role Role) bool {
-	return role.EqualOrAbove(u.Role)
-}
-
-func (u *User) HasPerms(permIds ...string) bool {
+func HasPerms(u User, permIds ...string) bool {
 	for _, perm := range permIds {
-		if !u.Permissions.HasPerm(perm) {
+		if !u.Permissions().HasPerm(perm) {
 			return false
 		}
 	}
 	return true
+}
+
+type User interface {
+	SeqId() int
+	Id() string
+	Email() string
+	FullName() string
+	Role() Role
+	GroupIds() []string
+	Permissions() PermissionSet
 }
 
 type Group struct {
@@ -70,4 +80,4 @@ func ToRole(roleStr string) Role {
 	return None
 }
 
-type UserRetrieverFunc func(userId string) (*User, error)
+type UserRetrieverFunc func(userId string) (User, error)

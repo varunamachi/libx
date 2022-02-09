@@ -85,7 +85,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 				return err
 			}
 
-			if !user.HasPerms(ep.Permission) || !user.HasRole(ep.Role) {
+			if !auth.HasPerms(user, ep.Permission) || !auth.HasRole(user, ep.Role) {
 
 				return &echo.HTTPError{
 					Code:    http.StatusUnauthorized,

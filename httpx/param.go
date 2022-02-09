@@ -251,11 +251,11 @@ func MustGetUser(etx echo.Context) *auth.User {
 
 func GetUserId(etx echo.Context) string {
 	obj := etx.Get("user")
-	user, ok := obj.(*auth.User)
+	user, ok := obj.(auth.User)
 	if !ok {
 		return ""
 	}
-	return user.Id
+	return user.Id()
 }
 
 func MustGetEndpoint(etx echo.Context) *Endpoint {
