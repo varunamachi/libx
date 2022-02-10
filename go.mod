@@ -11,6 +11,7 @@ require (
 	github.com/rs/zerolog v1.26.1
 	github.com/urfave/cli/v2 v2.3.0
 	go.mongodb.org/mongo-driver v1.8.2
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
@@ -33,13 +34,9 @@ require (
 	github.com/xdg-go/scram v1.1.0 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
-	gopkg.in/hlandau/easymetric.v1 v1.0.0 // indirect
-	gopkg.in/hlandau/measurable.v1 v1.0.1 // indirect
-	gopkg.in/hlandau/passlib.v1 v1.0.11 // indirect
 )

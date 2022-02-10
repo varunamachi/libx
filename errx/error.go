@@ -1,10 +1,15 @@
 package errx
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 type Error struct {
-	Err error  `json:"err"`
-	Msg string `json:"msg"`
+	Err  error  `json:"err"`
+	Msg  string `json:"msg"`
+	File string `json:"file"`
+	Line int    `json:"line"`
 }
 
 func (fxErr *Error) Error() string {
@@ -20,8 +25,12 @@ func (cfx *Error) String() string {
 }
 
 func Errf(inner error, msg string, args ...interface{}) *Error {
-	msg = fmt.Sprintf(msg, args...)
-	return &Error{Err: inner, Msg: msg}
+	_, file, line, _ := runtime.Caller(1)
+
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	return &Error{Err: inner, Msg: msg, File: file, Line: line}
 }
 
 func Str(err error) string {
@@ -29,5 +38,5 @@ func Str(err error) string {
 	if !ok {
 		return err.Error()
 	}
-	return ex.Msg
+	return fmt.Sprintf("%s:%d - %s", ex.File, ex.Line, ex.Msg)
 }
