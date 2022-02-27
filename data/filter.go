@@ -24,9 +24,6 @@ const Search FilterType = "Search"
 //Constant - constant filter value
 const Constant FilterType = "Constant"
 
-//Static - constant filter value
-const Static FilterType = "Static"
-
 //MatchStrategy - strategy to match multiple fields passed as part of the
 //filters
 type MatchStrategy string
@@ -63,15 +60,16 @@ type FilterSpecList []*FilterSpec
 
 //FilterVal - values for filter along with the count
 type FilterVal struct {
-	Name  string `json:"name" db:"name"`
-	Count int    `json:"count" db:"count"`
+	Name  string `json:"name" db:"name" bson:"name"`
+	Count int    `json:"count" db:"count" bson:"count"`
 }
 
 //Filter - generic filter used to filter data in any mongodb collection
 type Filter struct {
-	Props    map[string]Matcher     `json:"props" db:"props"`
-	Bools    map[string]interface{} `json:"bools" db:"bools"`
-	Dates    map[string]DateRange   `json:"dates" db:"dates"`
-	Lists    map[string]Matcher     `json:"lists" db:"lists"`
-	Searches map[string]Matcher     `json:"searches" db:"searches"`
+	Props    map[string]*Matcher     `json:"props" db:"props" bson:"props"`
+	Bools    map[string]interface{}  `json:"bools" db:"bools" bson:"bools"`
+	Dates    map[string]*DateRange   `json:"dates" db:"dates" bson:"dates"`
+	Lists    map[string]*Matcher     `json:"lists" db:"lists" bson:"lists"`
+	Ranges   map[string]*NumberRange `json:"range" db:"range" bson:"range"`
+	Searches map[string]*Matcher     `json:"searches" db:"searches" bson:"searches"`
 }
