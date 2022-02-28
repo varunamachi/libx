@@ -104,26 +104,52 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(etx echo.Context) error {
 			err := next(etx)
-			if err == nil {
-				if rt.EnvBool(EnvPrintAllAccess, false) {
-					status := etx.Response().Status
-					log.Debug().
-						Int("statusCode", status).
-						Str("user", GetUserId(etx)).
-						Str("method", etx.Request().Method).
-						Str("path", etx.Request().URL.Path).
-						Msg(http.StatusText(status))
+
+			printIfInternal := func(err error) bool {
+				irr, ok := err.(*errx.Error)
+				if !ok {
+					return false
 				}
+				log.Error().
+					Int("statusCode", http.StatusInternalServerError).
+					Str("file", irr.File).
+					Int("line", irr.Line).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg(irr.Msg)
+				return true
+			}
+
+			if err == nil && rt.EnvBool(EnvPrintAllAccess, false) {
+				status := etx.Response().Status
+				log.Debug().
+					Int("statusCode", status).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg(http.StatusText(status))
 				return nil
 			}
 
+			if printIfInternal(err) {
+				return err
+			}
+
 			httpErr, ok := err.(*echo.HTTPError)
-			if !ok {
-				httpErr = errx.InternalServerErr(err)
+			if ok && printIfInternal(httpErr.Internal) {
+				return err
+			} else if !ok {
+				log.Error().
+					Int("statusCode", httpErr.Code).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg(StrMsg(httpErr))
 			}
 
 			log.Error().
-				Int("statusCode", httpErr.Code).
+				Int("statusCode", http.StatusInternalServerError).
 				Str("user", GetUserId(etx)).
 				Str("method", etx.Request().Method).
 				Str("path", etx.Request().URL.Path).

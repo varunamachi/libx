@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/httpx"
@@ -26,7 +27,7 @@ func NewApp(name, description, versionStr, author string) *App {
 		App: &cli.App{
 			Name:        name,
 			Description: description,
-			Commands:    make([]*cli.Command, 100),
+			Commands:    make([]*cli.Command, 0, 100),
 			Version:     versionStr,
 			Authors:     []*cli.Author{{Name: author}},
 			Flags: []cli.Flag{
@@ -38,6 +39,7 @@ func NewApp(name, description, versionStr, author string) *App {
 				},
 			},
 			Before: func(ctx *cli.Context) error {
+				log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 				logLevel := ctx.String("log-level")
 				if logLevel != "" {
 					level := zerolog.InfoLevel
