@@ -96,5 +96,6 @@ func requireMongo(ctx *cli.Context) error {
 	if err := mongoStore.client.Ping(gtx, nil); err != nil {
 		log.Fatal().Err(err).Msg("failed to ping database")
 	}
+	log.Info().Msg("Connected to mongodb")
 	return nil
 }

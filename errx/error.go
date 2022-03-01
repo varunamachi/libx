@@ -40,3 +40,20 @@ func Str(err error) string {
 	}
 	return fmt.Sprintf("%s:%d - %s", ex.File, ex.Line, ex.Msg)
 }
+
+func PrintSomeStack(err error) {
+	stackPrinter(err, "")
+}
+
+func stackPrinter(err error, indent string) {
+	if err == nil {
+		return
+	}
+	ex, ok := err.(*Error)
+	if ok {
+		fmt.Printf("%s> %s:%d - %s\n", indent, ex.File, ex.Line, ex.Msg)
+		stackPrinter(ex.Err, indent+"--")
+		return
+	}
+	fmt.Printf("%s> %v\n", indent, err)
+}

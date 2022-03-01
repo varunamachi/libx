@@ -39,7 +39,9 @@ func NewApp(name, description, versionStr, author string) *App {
 				},
 			},
 			Before: func(ctx *cli.Context) error {
-				log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+				log.Logger = log.Output(
+					zerolog.ConsoleWriter{Out: os.Stderr}).
+					With().Caller().Logger()
 				logLevel := ctx.String("log-level")
 				if logLevel != "" {
 					level := zerolog.InfoLevel

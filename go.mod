@@ -7,7 +7,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/labstack/echo/v4 v4.6.3
-	github.com/lib/pq v1.10.4
 	github.com/rs/zerolog v1.26.1
 	github.com/urfave/cli/v2 v2.3.0
 	go.mongodb.org/mongo-driver v1.8.2
@@ -23,6 +22,7 @@ require (
 	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
@@ -38,5 +38,4 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 )
