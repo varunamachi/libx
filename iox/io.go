@@ -24,6 +24,17 @@ func PrintJSON(o interface{}) {
 	fmt.Println(string(b))
 }
 
+//WriteJSON - writes JSON representation of given data to given writer
+func WriteJSON(writer io.Writer, o interface{}) {
+	b, err := json.MarshalIndent(o, "", "    ")
+	if err != nil {
+		log.Error().Err(err).Msg("failed to write formatted JSON to console")
+		return
+	}
+
+	fmt.Fprintln(writer, string(b))
+}
+
 func LoadJsonFile(path string, out interface{}) error {
 	reader, err := os.Open(path)
 	if err != nil {
