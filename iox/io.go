@@ -25,14 +25,31 @@ func PrintJSON(o interface{}) {
 }
 
 //WriteJSON - writes JSON representation of given data to given writer
-func WriteJSON(writer io.Writer, o interface{}) {
+func WriteJSON(writer io.Writer, o interface{}) error {
 	b, err := json.MarshalIndent(o, "", "    ")
 	if err != nil {
-		log.Error().Err(err).Msg("failed to write formatted JSON to console")
-		return
+		return err
 	}
 
 	fmt.Fprintln(writer, string(b))
+	return nil
+}
+
+func WriteJSONFile(
+	path string, conflictPolicy FileConflictPolicy, data interface{}) error {
+	file, err := CreateFile(path, conflictPolicy)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create JSON file")
+		return err
+	}
+	defer file.Close()
+
+	if err := WriteJSON(file, data); err != nil {
+		log.Error().Err(err).Msg("failed to write JSON content to file")
+		return err
+	}
+
+	return nil
 }
 
 func LoadJsonFile(path string, out interface{}) error {
