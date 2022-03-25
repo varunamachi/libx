@@ -12,16 +12,22 @@ type Error struct {
 	Line int    `json:"line"`
 }
 
-func (fxErr *Error) Error() string {
-	return fxErr.Err.Error()
+func (ex *Error) Error() string {
+	if ex.Err == nil {
+		return ex.Msg
+	}
+	return ex.Err.Error()
 }
 
-func (fxErr *Error) Unwrap() error {
-	return fxErr.Err
+func (ex *Error) Unwrap() error {
+	return ex.Err
 }
 
-func (cfx *Error) String() string {
-	return cfx.Err.Error() + ": " + cfx.Msg
+func (ex *Error) String() string {
+	if ex.Err == nil {
+		return ex.Msg
+	}
+	return ex.Err.Error() + ": " + ex.Msg
 }
 
 func Errf(inner error, msg string, args ...interface{}) *Error {
