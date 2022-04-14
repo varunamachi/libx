@@ -3,8 +3,10 @@ package httpx
 import (
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
 )
 
@@ -120,4 +122,12 @@ func (s *Server) Print() {
 			ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
 	}
 	fmt.Print("\n\n")
+}
+
+func SendJSON(etx echo.Context, data interface{}) error {
+	if err := etx.JSON(http.StatusOK, data); err != nil {
+		log.Error().Err(err).Msg("failed to write JSON response")
+		return err
+	}
+	return nil
 }

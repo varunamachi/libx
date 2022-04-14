@@ -18,26 +18,19 @@ func BadReqf(e error, msg string, args ...interface{}) *echo.HTTPError {
 	}
 }
 
-func BadReq(e error) *echo.HTTPError {
-	return &echo.HTTPError{
-		Code:     http.StatusBadRequest,
-		Message:  Str(e),
-		Internal: e,
-	}
-}
-
-func InternalServerErr(e error) *echo.HTTPError {
-	return &echo.HTTPError{
-		Code:     http.StatusInternalServerError,
-		Internal: e,
-	}
-}
-
-func InternalServerErrf(
+func IntSrvErrf(
 	e error, msg string, args ...interface{}) *echo.HTTPError {
 	if len(args) != 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
+	return &echo.HTTPError{
+		Code:     http.StatusBadRequest,
+		Message:  msg,
+		Internal: e,
+	}
+}
+
+func IntSrvErr(e error) *echo.HTTPError {
 	return &echo.HTTPError{
 		Code:     http.StatusBadRequest,
 		Message:  e.Error(),

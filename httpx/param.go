@@ -197,21 +197,22 @@ func (pm *ParamGetter) QueryBoolOr(name string, def bool) bool {
 	return def
 }
 
-func (pm *ParamGetter) QueryJSON(name string, out interface{}) {
+func (pm *ParamGetter) QueryJSON(name string, out interface{}) *ParamGetter {
 	val := pm.etx.QueryParam(name)
 	if len(val) == 0 {
 		pm.errs[name] = errors.New("could not find json param")
-		return
+		return pm
 	}
 	decoded, err := url.PathUnescape(val)
 	if err != nil {
 		pm.errs[name] = err
-		return
+		return pm
 	}
 	if err = json.Unmarshal([]byte(decoded), out); err != nil {
 		pm.errs[name] = err
-		return
+		return pm
 	}
+	return pm
 }
 
 func (pm *ParamGetter) HasError() bool {
