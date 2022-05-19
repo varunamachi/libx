@@ -72,7 +72,7 @@ func (s *Server) configure() {
 	// }
 	// authMw := getAuthMiddleware(s)
 	// groups := map[string]*groupPair{}
-
+	s.echo.HideBanner = true
 	s.echo.Use(getAccessMiddleware())
 	groups := map[string]*echo.Group{}
 
@@ -80,7 +80,7 @@ func (s *Server) configure() {
 		ep := ep
 		grp := groups[ep.Version]
 		if grp == nil {
-			grp = s.echo.Group("api/" + ep.Version)
+			grp = s.echo.Group("api/" + ep.Version + "/")
 			groups[ep.Version] = grp
 		}
 

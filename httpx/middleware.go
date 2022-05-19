@@ -80,7 +80,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			// 	}
 			// }
 
-			user, err := server.userRetriever(userId)
+			user, err := server.userRetriever(etx.Request().Context(), userId)
 			if err != nil {
 				return err
 			}
@@ -118,6 +118,7 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
 					Msg(irr.Msg)
+				errx.PrintSomeStack(irr)
 				return true
 			}
 
@@ -139,13 +140,15 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 			httpErr, ok := err.(*echo.HTTPError)
 			if ok && printIfInternal(httpErr.Internal) {
 				return err
-			} else if !ok {
+			}
+			if !ok {
 				log.Error().
 					Int("statusCode", httpErr.Code).
 					Str("user", GetUserId(etx)).
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
-					Msg(StrMsg(httpErr))
+					Msg(err.Error())
+				return httpErr
 			}
 
 			log.Error().

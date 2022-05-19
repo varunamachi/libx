@@ -1,5 +1,7 @@
 package auth
 
+import "context"
+
 type Role string
 
 const (
@@ -80,4 +82,5 @@ func ToRole(roleStr string) Role {
 	return None
 }
 
-type UserRetrieverFunc func(userId string) (User, error)
+type UserRetrieverFunc func(
+	gtx context.Context, userId string) (User, error)

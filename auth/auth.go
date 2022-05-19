@@ -63,12 +63,12 @@ func Login(
 }
 
 //GetJWTKey - gives a unique JWT key
-func GetJWTKey() string {
+func GetJWTKey() []byte {
 	jwtKey := os.Getenv("VLIBX_JWT_KEY")
 	if len(jwtKey) == 0 {
 		jwtKey = uuid.NewString()
 		// TODO - may be need to do something better
 		os.Setenv("VLIBX_JWT_KEY", jwtKey)
 	}
-	return jwtKey
+	return []byte(jwtKey)
 }
