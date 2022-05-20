@@ -63,7 +63,7 @@ type User interface {
 }
 
 type Group struct {
-	SeqId int    `json:"seqId" db:"seqId" bson:"seqId"`
+	SeqId int    `json:"seqId" db:"seq_id" bson:"seqId"`
 	Id    string `json:"id" db:"id" bson:"id"`
 	Name  string `json:"name" db:"name" bson:"name"`
 }

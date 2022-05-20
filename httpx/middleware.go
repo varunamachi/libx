@@ -104,7 +104,9 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(etx echo.Context) error {
 			err := next(etx)
-
+			if err == nil {
+				return nil
+			}
 			printIfInternal := func(err error) bool {
 				irr, ok := err.(*errx.Error)
 				if !ok {
@@ -141,13 +143,13 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 			if ok && printIfInternal(httpErr.Internal) {
 				return err
 			}
-			if !ok {
+			if ok {
 				log.Error().
 					Int("statusCode", httpErr.Code).
 					Str("user", GetUserId(etx)).
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
-					Msg(err.Error())
+					Msg(StrMsg(httpErr))
 				return httpErr
 			}
 
@@ -156,7 +158,7 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 				Str("user", GetUserId(etx)).
 				Str("method", etx.Request().Method).
 				Str("path", etx.Request().URL.Path).
-				Msg(StrMsg(httpErr))
+				Msg(err.Error())
 			return err
 		}
 	}

@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	ErrHttpParam = errors.New("sause: http param error")
+	ErrHttpParam = errors.New("error.http.param")
 )
 
 type ParamGetter struct {
@@ -220,6 +220,9 @@ func (pm *ParamGetter) HasError() bool {
 }
 
 func (pm *ParamGetter) Error() error {
+	if len(pm.errs) == 0 {
+		return nil
+	}
 	buf := bytes.NewBufferString("http parameter error: ")
 	index := 0
 	for k := range pm.errs {
