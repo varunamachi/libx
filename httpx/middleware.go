@@ -105,6 +105,12 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 		return func(etx echo.Context) error {
 			err := next(etx)
 			if err == nil {
+				log.Info().
+					Int("statusCode", etx.Response().Status).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg("-- OK --")
 				return nil
 			}
 			printIfInternal := func(err error) bool {
