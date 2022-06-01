@@ -40,12 +40,12 @@ func Login(
 	authr UserAuthenticator,
 	data AuthData) (User, string, error) {
 	if err := authr.Authenticate(gtx, data); err != nil {
-		return nil, "", errx.Errf(ErrAuthentication, err.Error())
+		return nil, "", errx.Errf(err, "failed to authenticate user")
 	}
 
 	user, err := authr.GetUser(gtx, data)
 	if err != nil {
-		return nil, "", errx.Errf(ErrUserRetrieval, err.Error())
+		return nil, "", errx.Errf(err, "failed to retrieve user")
 	}
 
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -55,7 +55,7 @@ func Login(
 
 	signed, err := token.SignedString(GetJWTKey())
 	if err != nil {
-		return nil, "", errx.Errf(ErrToken, err.Error())
+		return nil, "", errx.Errf(err, "failed to generate session token")
 	}
 
 	return user, signed, nil

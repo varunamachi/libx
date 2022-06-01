@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -42,18 +43,26 @@ func NewCryptor(password string) FileCrytor {
 	}
 }
 
-func EncryptStr(in, password string) (string, error) {
+func EncryptToBase64Str(in, password string) (string, error) {
 	c := NewCryptor(password)
 	out, err := c.Encrypt([]byte(in))
 	if err != nil {
 		return "", err
 	}
-	return string(out), nil
+	return base64.RawURLEncoding.EncodeToString(out), nil
 }
 
-func DecryptStr(in, password string) (string, error) {
+func DecryptBase64Str(in, password string) (string, error) {
+	ba, err := base64.RawURLEncoding.DecodeString(in)
+	if err != nil {
+		return "", err
+	}
+
 	c := NewCryptor(password)
-	out, err := c.Decrypt([]byte(in))
+	out, err := c.Decrypt(ba)
+	if err != nil {
+		return "", err
+	}
 	if err != nil {
 		return "", err
 	}

@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"syscall"
 
 	"github.com/rs/zerolog/log"
@@ -119,19 +120,19 @@ func FormattedJSON(o interface{}) (string, error) {
 }
 
 //askSecret - asks password from user, does not echo charectors
-func askSecret() (secret string, err error) {
-	var pbyte []byte
-	pbyte, err = term.ReadPassword(int(syscall.Stdin))
-	if err == nil {
-		secret = string(pbyte)
-		fmt.Println()
+func askSecret() (string, error) {
+	pbyte, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return "", err
 	}
-	return secret, err
+	secret := string(pbyte)
+	fmt.Println()
+	return secret, nil
 }
 
 //AskPassword - asks password, prints the given name before asking
-func AskPassword(name string) (secret string) {
+func AskPassword(name string) string {
 	fmt.Print(name + ": ")
-	secret, _ = askSecret()
-	return secret
+	secret, _ := askSecret()
+	return strings.TrimSpace(secret)
 }
