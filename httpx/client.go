@@ -12,7 +12,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/iox"
 )
 
 var (
@@ -110,6 +113,7 @@ type Client struct {
 	address     string
 	contextRoot string
 	token       string
+	user        auth.User
 }
 
 func DefaultTransport() *http.Transport {
@@ -259,37 +263,111 @@ func (client *Client) Delete(
 	return newApiResult(req, resp)
 }
 
-func (client *Client) UserLogin(
-	gtx context.Context, userID, password string) error {
-	authData := &AuthData{
-		AuthType: "user",
-		Data: map[string]string{
-			userID:   userID,
-			password: password,
-		},
-	}
-	return client.Login(gtx, authData)
+func (client *Client) User() auth.User {
+	return client.user
 }
 
-type AuthData struct {
-	AuthType string      `json:"authType"`
-	Data     interface{} `json:"data"`
+type AuthData map[string]interface{}
+
+type LoginConfig struct {
+	LoginURL string
+	UserOut  auth.User
 }
 
-func (client *Client) Login(gtx context.Context, authData *AuthData) error {
+func (client *Client) Login(
+	gtx context.Context,
+	lc *LoginConfig,
+	authData AuthData) error {
 
 	if authData == nil {
 		return nil
 	}
 
 	loginResult := struct {
-		Token string `json:"token"`
-	}{}
+		Token   string    `json:"token"`
+		UserOut auth.User `json:"user"`
+	}{
+		"",
+		lc.UserOut,
+	}
 
 	rr := client.Post(gtx, authData, "login")
 	if err := rr.LoadClose(&loginResult); err != nil {
 		return err
 	}
 	client.token = loginResult.Token
+	client.user = loginResult.UserOut
 	return nil
+}
+
+func CreatedClient(lc *LoginConfig, ctx *cli.Context) (
+	*Client, error) {
+	host := ctx.String("host")
+	ignCertErrs := ctx.Bool("ignore-cert-errors")
+	timeOut := ctx.Int("timeout-secs")
+
+	tp := DefaultTransport()
+	tp.TLSClientConfig.InsecureSkipVerify = ignCertErrs
+	client := NewCustom(host, "", tp, time.Duration(timeOut))
+
+	if lc == nil {
+		return client, nil
+	}
+
+	userId := ctx.String("user")
+	password := ctx.String("password")
+	if password == "" {
+		password = iox.AskPassword("Password")
+	}
+
+	err := client.Login(ctx.Context, lc, AuthData{
+		"userId":   userId,
+		"password": password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+
+}
+
+func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
+	flags = append(flags,
+		&cli.StringFlag{
+			Name: "host",
+			Usage: "Full address of the host with URL scheme, host name/IP " +
+				"and port",
+			Required: true,
+		},
+		&cli.BoolFlag{
+			Name: "ignore-cert-errors",
+			Usage: "Ignore certificate errors while connecting to a HTTPS " +
+				"service",
+			Value: false,
+		},
+		&cli.IntFlag{
+			Name:  "timeout-secs",
+			Usage: "Time out in seconds",
+			Value: 1,
+		},
+	)
+	if withAuth {
+		flags = append(flags,
+			&cli.StringFlag{
+				Name:     "user-id",
+				Usage:    "User present in the remote service",
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name: "password",
+				Usage: "Password for the user, only use for development " +
+					"purposes",
+				Required: false,
+				Hidden:   true,
+			},
+		)
+	}
+
+	return flags
 }
