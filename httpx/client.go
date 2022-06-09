@@ -3,11 +3,13 @@ package httpx
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -103,7 +105,8 @@ func (ar *ApiResult) Error() error {
 	}
 
 	if ar.resp == nil || ar.resp.Body == nil {
-		ar.err = errx.Errf(ErrInvalidResponse, "No valid http response received")
+		ar.err = errx.Errf(ErrInvalidResponse,
+			"No valid http response received")
 	}
 	return ar.err
 }
@@ -119,9 +122,9 @@ type Client struct {
 func DefaultTransport() *http.Transport {
 	return &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout: 1 * time.Second,
+			Timeout: 20 * time.Second,
 		}).Dial,
-		TLSHandshakeTimeout: 1 * time.Second,
+		TLSHandshakeTimeout: 20 * time.Second,
 	}
 }
 
@@ -130,7 +133,7 @@ func New(address, contextRoot string) *Client {
 		address:     address,
 		contextRoot: contextRoot,
 		Client: &http.Client{
-			Timeout:   time.Second * 1,
+			Timeout:   time.Second * 20,
 			Transport: DefaultTransport(),
 		},
 	}
@@ -157,6 +160,9 @@ func (client *Client) createUrl(args ...string) string {
 	}
 	if _, err := buffer.WriteString(client.contextRoot); err != nil {
 		log.Fatal().Err(err)
+	}
+	if !strings.HasSuffix(client.contextRoot, "/") {
+		buffer.WriteString("/")
 	}
 	for i := 0; i < len(args); i++ {
 		if _, err := buffer.WriteString(args[i]); err != nil {
@@ -291,7 +297,7 @@ func (client *Client) Login(
 		lc.UserOut,
 	}
 
-	rr := client.Post(gtx, authData, "login")
+	rr := client.Post(gtx, authData, lc.LoginURL)
 	if err := rr.LoadClose(&loginResult); err != nil {
 		return err
 	}
@@ -300,21 +306,25 @@ func (client *Client) Login(
 	return nil
 }
 
-func CreatedClient(lc *LoginConfig, ctx *cli.Context) (
+func CreateClient(lc *LoginConfig, ctx *cli.Context) (
 	*Client, error) {
 	host := ctx.String("host")
 	ignCertErrs := ctx.Bool("ignore-cert-errors")
 	timeOut := ctx.Int("timeout-secs")
 
 	tp := DefaultTransport()
-	tp.TLSClientConfig.InsecureSkipVerify = ignCertErrs
-	client := NewCustom(host, "", tp, time.Duration(timeOut))
+	if ignCertErrs {
+		tp.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: ignCertErrs,
+		}
+	}
+	client := NewCustom(host, "", tp, time.Duration(timeOut)*time.Second)
 
 	if lc == nil {
 		return client, nil
 	}
 
-	userId := ctx.String("user")
+	userId := ctx.String("user-id")
 	password := ctx.String("password")
 	if password == "" {
 		password = iox.AskPassword("Password")
@@ -349,7 +359,7 @@ func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
 		&cli.IntFlag{
 			Name:  "timeout-secs",
 			Usage: "Time out in seconds",
-			Value: 1,
+			Value: 20,
 		},
 	)
 	if withAuth {
