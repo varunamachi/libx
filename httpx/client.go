@@ -342,12 +342,19 @@ func CreateClient(lc *LoginConfig, ctx *cli.Context) (
 
 }
 
-func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
+func WithClientFlags(
+	withAuth bool,
+	envPrefix string,
+	flags ...cli.Flag) []cli.Flag {
 	flags = append(flags,
 		&cli.StringFlag{
 			Name: "host",
 			Usage: "Full address of the host with URL scheme, host name/IP " +
 				"and port",
+			EnvVars: []string{
+				envPrefix + "_CLIENT_REMOTE_HOST",
+				"LIBX_CLIENT_REMOTE_HOST",
+			},
 			Required: true,
 		},
 		&cli.BoolFlag{
@@ -355,11 +362,19 @@ func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
 			Usage: "Ignore certificate errors while connecting to a HTTPS " +
 				"service",
 			Value: false,
+			EnvVars: []string{
+				envPrefix + "_CLIENT_IGNORE_CERT_ERR",
+				"LIBX_CLIENT_IGNORE_CERT_ERR",
+			},
 		},
 		&cli.IntFlag{
 			Name:  "timeout-secs",
 			Usage: "Time out in seconds",
 			Value: 20,
+			EnvVars: []string{
+				envPrefix + "_CLIENT_TIMEOUT_SECS",
+				"LIBX_CLIENT_TIMEOUT_SECS",
+			},
 		},
 	)
 	if withAuth {
@@ -368,6 +383,10 @@ func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
 				Name:     "user-id",
 				Usage:    "User present in the remote service",
 				Required: false,
+				EnvVars: []string{
+					envPrefix + "_CLIENT_USER_ID",
+					"LIBX_CLIENT_USER_ID",
+				},
 			},
 			&cli.StringFlag{
 				Name: "password",
@@ -375,6 +394,10 @@ func WithClientFlags(withAuth bool, flags ...cli.Flag) []cli.Flag {
 					"purposes",
 				Required: false,
 				Hidden:   true,
+				EnvVars: []string{
+					envPrefix + "_CLIENT_PASSWORD",
+					"LIBX_CLIENT_PASSWORD",
+				},
 			},
 		)
 	}
