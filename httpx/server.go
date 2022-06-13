@@ -124,6 +124,10 @@ func (s *Server) Print() {
 	fmt.Print("\n\n")
 }
 
+func (s *Server) Close() error {
+	return s.echo.Close()
+}
+
 func SendJSON(etx echo.Context, data interface{}) error {
 	if err := etx.JSON(http.StatusOK, data); err != nil {
 		log.Error().Err(err).Msg("failed to write JSON response")
