@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -151,6 +152,14 @@ func NewCustom(
 			Timeout:   timeout,
 		},
 	}
+}
+
+func (client *Client) RemoteHost() (string, error) {
+	url, err := url.Parse(client.address)
+	if err != nil {
+		return "", errx.Errf(err, "client: invalid remote host address")
+	}
+	return url.Host, nil
 }
 
 func (client *Client) createUrl(args ...string) string {
@@ -339,7 +348,6 @@ func CreateClient(lc *LoginConfig, ctx *cli.Context) (
 	}
 
 	return client, nil
-
 }
 
 func WithClientFlags(
