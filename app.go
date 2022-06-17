@@ -10,16 +10,19 @@ import (
 	"github.com/varunamachi/libx/httpx"
 )
 
-// type AppInfo struct {
-// 	SeqId int
-// 	Id    string
-// 	Name  string
-// 	Desc  string
-// }
+type BuildInfo struct {
+	GitTag    string `json:"gitTag"`
+	GitHash   string `json:"gitHash"`
+	GitBranch string `json:"gitBranch"`
+	BuildTime string `json:"buildTime"`
+	BuildHost string `json:"buildHost"`
+	BuildUser string `json:"buildUser"`
+}
 
 type App struct {
 	*cli.App
-	server *httpx.Server
+	server    *httpx.Server
+	buildInfo *BuildInfo
 }
 
 func NewApp(name, description, versionStr, author string) *App {
@@ -78,6 +81,11 @@ func (app *App) WithEndpoints(ep ...*httpx.Endpoint) *App {
 
 func (app *App) WithCommands(cmds ...*cli.Command) *App {
 	app.Commands = append(app.Commands, cmds...)
+	return app
+}
+
+func (app *App) WithBuildInfo(bi *BuildInfo) *App {
+	app.buildInfo = bi
 	return app
 }
 

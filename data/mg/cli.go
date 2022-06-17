@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func WithMongoFlags(defaultDb string, cmd *cli.Command) *cli.Command {
+func WithMongo(defaultDb string, cmd *cli.Command) *cli.Command {
 	cmd.Flags = append(cmd.Flags,
 		&cli.StringFlag{
 			Name: "mongo-url",

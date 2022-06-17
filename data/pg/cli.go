@@ -5,7 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func WithPostgresFlags(cmd *cli.Command) *cli.Command {
+func WithPostgres(cmd *cli.Command) *cli.Command {
 	cmd.Flags = append(cmd.Flags,
 		&cli.StringFlag{
 			Name: "pg-url",
