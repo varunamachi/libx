@@ -5,27 +5,33 @@ import "context"
 type Role string
 
 const (
-	None   Role = "None"
+	None   Role = ""
 	Normal Role = "Normal"
 	Admin  Role = "Admin"
 	Super  Role = "Super"
 )
 
+func (r Role) IsOneOf(others ...Role) bool {
+	for _, oth := range others {
+		if r == oth {
+			return true
+		}
+	}
+	return false
+}
+
 func (r Role) EqualOrAbove(another Role) bool {
-	// Following logic only checks above condition
 	switch r {
 	case None:
-		return true
-	case Normal:
 		return another == None
+	case Normal:
+		return another.IsOneOf(None, Normal)
 	case Admin:
-		return another == None || another == Normal
+		return another.IsOneOf(None, Normal, Admin)
 	case Super:
-		return false
+		return true
 	}
-
-	// Following checks equal
-	return r == another
+	return false
 }
 
 // type User struct {
@@ -40,7 +46,8 @@ func (r Role) EqualOrAbove(another Role) bool {
 // }
 
 func HasRole(u User, role Role) bool {
-	return role.EqualOrAbove(u.Role())
+	// return role.EqualOrAbove(u.Role())
+	return u.Role().EqualOrAbove(role)
 }
 
 func HasPerms(u User, permIds ...string) bool {

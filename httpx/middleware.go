@@ -85,8 +85,9 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 				return err
 			}
 
-			if !auth.HasPerms(user, ep.Permission) || !auth.HasRole(user, ep.Role) {
-
+			hasAccess := auth.HasPerms(user, ep.Permission) &&
+				auth.HasRole(user, ep.Role)
+			if !hasAccess {
 				return &echo.HTTPError{
 					Code:    http.StatusUnauthorized,
 					Message: "permission to access resource is denied",
