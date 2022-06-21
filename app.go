@@ -66,7 +66,7 @@ func NewApp(name, description, versionStr, author string) *App {
 			},
 		},
 	}
-	app.Metadata["app"] = app
+	app.Metadata = map[string]interface{}{"app": app}
 	return app
 }
 
