@@ -66,6 +66,7 @@ func NewApp(name, description, versionStr, author string) *App {
 			},
 		},
 	}
+	app.Metadata["app"] = app
 	return app
 }
 
@@ -87,6 +88,10 @@ func (app *App) WithCommands(cmds ...*cli.Command) *App {
 func (app *App) WithBuildInfo(bi *BuildInfo) *App {
 	app.buildInfo = bi
 	return app
+}
+
+func (app *App) BuildInfo() *BuildInfo {
+	return app.buildInfo
 }
 
 func (app *App) Serve(port uint32) error {
