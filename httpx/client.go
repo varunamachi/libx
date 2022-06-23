@@ -336,7 +336,7 @@ func CreateClient(lc *LoginConfig, ctx *cli.Context) (
 	userId := ctx.String("user-id")
 	password := ctx.String("password")
 	if password == "" {
-		password = iox.AskPassword("Password")
+		password = iox.AskPassword(fmt.Sprintf("Password for '%s'", userId))
 	}
 
 	err := client.Login(ctx.Context, lc, AuthData{
