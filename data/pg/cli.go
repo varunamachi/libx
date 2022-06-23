@@ -1,16 +1,19 @@
 package pg
 
 import (
+	"net/url"
+
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx/errx"
 )
 
 func WithPostgres(cmd *cli.Command) *cli.Command {
 	cmd.Flags = append(cmd.Flags,
 		&cli.StringFlag{
 			Name: "pg-url",
-			Usage: "URL of the host running postgres, this has the highest" +
-				" precidence",
+			Usage: "URL (NOT CONNECTION_STRING) of the host running postgres" +
+				", this has the highest  precidence",
 			EnvVars:  []string{"PG_URL"},
 			Required: false,
 		},
@@ -67,9 +70,14 @@ func WithPostgres(cmd *cli.Command) *cli.Command {
 }
 
 func requirePostgres(ctx *cli.Context) error {
-	url := ctx.String("pg-url")
-	if url != "" {
-		db, err := Connect(url)
+	urlStr := ctx.String("pg-url")
+	if urlStr != "" {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			return errx.Errf(err, "invalid URL '%s' given")
+		}
+
+		db, err := Connect(u)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
 			return err

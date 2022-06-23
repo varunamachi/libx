@@ -2,9 +2,13 @@ package pg
 
 import (
 	"fmt"
+	"net/url"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
+	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/netx"
 )
 
 var defDB *sqlx.DB
@@ -22,17 +26,37 @@ type ConnOpts struct {
 //String - get usable connection string
 func (c *ConnOpts) String() string {
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		c.Host,
-		c.Port,
+		// postgres://username:password@url.com:5432/dbName
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		c.User,
 		c.Password,
-		c.DBName)
+		c.Host,
+		c.Port,
+		c.DBName,
+	)
 }
 
-//Connect - connects to DB based on connection string or URL
-func Connect(optStr string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("postgres", optStr)
+//Url - get a postgres URL
+func (c *ConnOpts) Url() (*url.URL, error) {
+	urlStr := fmt.Sprintf(
+		// postgres://username:password@url.com:5432/dbName
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		c.User,
+		c.Password,
+		c.Host,
+		c.Port,
+		c.DBName,
+	)
+	return url.Parse(urlStr)
+}
+
+//connect - connects to DB based on connection string or URL
+func Connect(url *url.URL) (*sqlx.DB, error) {
+	if err := netx.WaitForPorts(url.Host, 20*time.Second); err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+	db, err := sqlx.Open("postgres", url.String())
 	if err != nil {
 		log.Error().Err(err).Msg("failed to open postgress connection")
 	}
@@ -41,7 +65,11 @@ func Connect(optStr string) (*sqlx.DB, error) {
 
 //ConnectWithOpts - connect to postgresdb based on given options
 func ConnectWithOpts(opts *ConnOpts) (db *sqlx.DB, err error) {
-	return Connect(opts.String())
+	u, err := opts.Url()
+	if err != nil {
+		return nil, errx.Errf(err, "failed to create pg URL")
+	}
+	return Connect(u)
 }
 
 //NamedConn - gives connection to database associated with given name. If no
