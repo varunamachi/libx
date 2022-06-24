@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -26,6 +28,7 @@ var (
 	ErrUnauthorized        = errors.New("client.http.unauthorized")
 	ErrForbidden           = errors.New("client.http.forbidden")
 	ErrInternalServerError = errors.New("client.http.internalServerError")
+	ErrBadRequest          = errors.New("client.http.badRequest")
 	ErrOtherStatus         = errors.New("client.http.otherStatus")
 
 	ErrInvalidResponse = errors.New("client.http.invalidResponse")
@@ -48,27 +51,49 @@ func newApiResult(req *http.Request, resp *http.Response) *ApiResult {
 		code:   resp.StatusCode,
 	}
 
-	var err *errx.Error
+	var err error
 
 	switch resp.StatusCode {
+	case http.StatusBadRequest:
+		err = ErrBadRequest
 	case http.StatusNotFound:
-		err = errx.Errf(ErrNotFound, "not found: %s", target)
+		err = ErrNotFound
 	case http.StatusUnauthorized:
-		err = errx.Errf(ErrUnauthorized, "unauthorized: %s", target)
+		err = ErrUnauthorized
 	case http.StatusForbidden:
-		err = errx.Errf(ErrUnauthorized, "forbidden: %s", target)
+		err = ErrUnauthorized
 	case http.StatusInternalServerError:
-		err = errx.Errf(ErrUnauthorized, "internal Server Error: %s", target)
+		err = ErrUnauthorized
 	default:
-		if resp.StatusCode > 400 {
-			err = errx.Errf(
-				ErrOtherStatus, "http-error: %d - %s", resp.StatusCode, target)
+		if resp.StatusCode >= 400 {
+			err = ErrOtherStatus
 		}
 	}
-	if err != nil {
-		log.Error().Err(err)
-		res.err = err
+
+	if err == nil {
+		return res
 	}
+	if err != nil && resp.Body == nil {
+		res.err = errx.Errf(err, "%s - %s", resp.Status, target)
+		return res
+	}
+
+	defer resp.Body.Close()
+	msg := ""
+
+	// First we check if this is in the form of echo.HttpError, if so we try to
+	// get the internal error. If not we try to read the entire body as message
+	var he echo.HTTPError
+	if json.NewDecoder(resp.Body).Decode(&he) != nil {
+		data, err := io.ReadAll(resp.Body)
+		if err == nil {
+			msg = string(data)
+		}
+	} else {
+		msg = he.Error()
+	}
+	err = errx.Errf(err, "%s - %s - %s", resp.Status, target, msg)
+	res.err = err
 	return res
 }
 
@@ -164,9 +189,9 @@ func (client *Client) RemoteHost() (string, error) {
 
 func (client *Client) createUrl(args ...string) string {
 	var buffer bytes.Buffer
-	if _, err := buffer.WriteString(client.address); err != nil {
-		log.Fatal().Err(err)
-	}
+	// if _, err := buffer.WriteString(client.address); err != nil {
+	// 	log.Fatal().Err(err)
+	// }
 	if _, err := buffer.WriteString(client.contextRoot); err != nil {
 		log.Fatal().Err(err)
 	}
@@ -183,7 +208,7 @@ func (client *Client) createUrl(args ...string) string {
 			}
 		}
 	}
-	return buffer.String()
+	return client.address + path.Clean(buffer.String())
 }
 
 func (client *Client) putOrPost(

@@ -114,13 +114,13 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 					Msg("-- OK --")
 				return nil
 			}
-			printIfInternal := func(err error) bool {
+			printIfInternal := func(status int, err error) bool {
 				irr, ok := err.(*errx.Error)
 				if !ok {
 					return false
 				}
 				log.Error().
-					Int("statusCode", http.StatusInternalServerError).
+					Int("statusCode", status).
 					Str("file", irr.File).
 					Int("line", irr.Line).
 					Str("user", GetUserId(etx)).
@@ -142,12 +142,12 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 				return nil
 			}
 
-			if printIfInternal(err) {
+			if printIfInternal(http.StatusInternalServerError, err) {
 				return err
 			}
 
 			httpErr, ok := err.(*echo.HTTPError)
-			if ok && printIfInternal(httpErr.Internal) {
+			if ok && printIfInternal(httpErr.Code, httpErr.Internal) {
 				return err
 			}
 			if ok {
