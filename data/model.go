@@ -13,36 +13,42 @@ type QueryParams struct {
 	Sort     string
 }
 
-type DataDeleter interface {
-	Name() string
+type Deleter interface {
 	Delete(
 		gtx context.Context,
 		dataType string,
 		keyField string,
-		key interface{}) error
+		keys ...interface{}) error
 }
 
-type DataRetriever interface {
-	Name() string
+type Getter interface {
 	Count(
 		gtx context.Context,
 		dtype string,
 		filter *Filter) (int64, error)
-	RetrieveOne(
+
+	GetOne(
 		gtx context.Context,
 		dataType string,
 		keyField string,
-		key interface{},
-		data interface{}) error
-	Retrieve(
+		keys []interface{},
+		dataOut interface{}) error
+
+	Get(
 		gtx context.Context,
 		dtype string,
 		params QueryParams,
 		out interface{}) error
+
 	FilterValues(
 		gtx context.Context,
 		dtype string,
 		field string,
 		specs FilterSpecList,
 		filter *Filter) (values M, err error)
+}
+
+type GetterDeleter interface {
+	Getter
+	Deleter
 }
