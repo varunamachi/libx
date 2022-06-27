@@ -24,19 +24,19 @@ const Search FilterType = "Search"
 //Constant - constant filter value
 const Constant FilterType = "Constant"
 
-//MatchStrategy - strategy to match multiple fields passed as part of the
-//filters
-type MatchStrategy string
+// //MatchStrategy - strategy to match multiple fields passed as part of the
+// //filters
+// type MatchStrategy string
 
-//MatchAll - match all provided values while executing filter
-const MatchAll MatchStrategy = "All"
+// //MatchAll - match all provided values while executing filter
+// const MatchAll MatchStrategy = "All"
 
-//MatchOne - match atleast one of the  provided values while executing filter
-const MatchOne MatchStrategy = "One"
+// //MatchOne - match atleast one of the  provided values while executing filter
+// const MatchOne MatchStrategy = "One"
 
-//MatchNone - match values that are not part of the provided list while
-//executing filter
-const MatchNone MatchStrategy = "None"
+// //MatchNone - match values that are not part of the provided list while
+// //executing filter
+// const MatchNone MatchStrategy = "None"
 
 //FilterSpec - filter specification
 type FilterSpec struct {
@@ -47,10 +47,6 @@ type FilterSpec struct {
 
 //Matcher - matches the given fields. If multiple fileds are given the; the
 //joining condition is decided by the MatchStrategy given
-type Matcher struct {
-	Strategy MatchStrategy `json:"strategy" db:"strategy" bson:"strategy"`
-	Fields   []interface{} `json:"fields" db:"fields" bson:"fields"`
-}
 
 //PropMatcher - matches props
 type PropMatcher []interface{}
@@ -62,6 +58,10 @@ type FilterSpecList []*FilterSpec
 type FilterVal struct {
 	Name  string `json:"name" db:"name" bson:"name"`
 	Count int    `json:"count" db:"count" bson:"count"`
+}
+type Matcher struct {
+	Invert bool          `json:"invert" db:"invert" bson:"invert"`
+	Fields []interface{} `json:"fields" db:"fields" bson:"fields"`
 }
 
 //Filter - generic filter used to filter data in any mongodb collection

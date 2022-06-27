@@ -57,7 +57,7 @@ func (pgd *PgGetterDeleter) GetOne(
 
 	query, args, err := sqlx.In(buf.String(), keys)
 	if err != nil {
-		return errx.Errf(err, "")
+		return errx.Errf(err, "failed to get values for")
 	}
 
 	query = Conn().Rebind(query)
