@@ -71,18 +71,26 @@ func (pgd *PgGetterDeleter) Count(
 	gtx context.Context,
 	dtype string,
 	filter *data.Filter) (int64, error) {
-	// query := fmt.Sprintf("SELECT COUNT(*) FROM %s %s",
-	// 	dtype, generateSelector(filter))
-	// err = defDB.SelectContext(gtx, &count, query)
-	// return count, err
-	return 0, nil
+	query, args := GenQuery(filter, "SELECT COUNT(*) FROM %s", dtype)
+
+	count := int64(0)
+	if err := defDB.SelectContext(gtx, &count, query, args); err != nil {
+		return 0, errx.Errf(
+			err, "failed to get count for data type '%s'", dtype)
+	}
+	return count, nil
 }
 
 func (pgd *PgGetterDeleter) Get(
 	gtx context.Context,
 	dtype string,
-	params data.QueryParams,
+	params *data.QueryParams,
 	out interface{}) error {
+	query, args := GenQueryX(params, "SELECT * FROM %s", dtype)
+
+	if err := defDB.SelectContext(gtx, out, query, args); err != nil {
+		return errx.Errf(err, "failed to get data for type '%s'", dtype)
+	}
 	return nil
 }
 
