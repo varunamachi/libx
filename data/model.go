@@ -6,7 +6,7 @@ import (
 
 type M map[string]any
 
-type QueryParams struct {
+type CommonParams struct {
 	Filter   *Filter
 	Page     int64
 	PageSize int64
@@ -14,11 +14,11 @@ type QueryParams struct {
 	SortDesc bool
 }
 
-func (qp *QueryParams) Offset() int64 {
+func (qp *CommonParams) Offset() int64 {
 	return qp.Page * qp.PageSize
 }
 
-func (qp *QueryParams) Limit() int64 {
+func (qp *CommonParams) Limit() int64 {
 	return qp.PageSize
 }
 
@@ -46,15 +46,14 @@ type Getter interface {
 	Get(
 		gtx context.Context,
 		dtype string,
-		params *QueryParams,
+		params *CommonParams,
 		out interface{}) error
 
 	FilterValues(
 		gtx context.Context,
 		dtype string,
-		field string,
 		specs FilterSpecList,
-		filter *Filter) (values M, err error)
+		filter *Filter) (*FilterValues, error)
 }
 
 type GetterDeleter interface {
@@ -65,26 +64,26 @@ type GetterDeleter interface {
 //FilterType - Type of filter item
 type FilterType string
 
-//Prop - filter for a value
-const Prop FilterType = "Prop"
+//FtProp - filter for a value
+const FtProp FilterType = "Prop"
 
-//Array - filter for an array
-const Array FilterType = "arrayArray"
+//FtArray - filter for an array
+const FtArray FilterType = "arrayArray"
 
 //DateRange - filter for date range
-const DtRange FilterType = "DateRange"
+const FtDateRange FilterType = "DateRange"
 
-//NumRange - filter for real number range
-const NumRange FilterType = "NumRange"
+//FtNumRange - filter for real number range
+const FtNumRange FilterType = "NumRange"
 
-//Boolean - filter for boolean field
-const Boolean FilterType = "Boolean"
+//FtBoolean - filter for boolean field
+const FtBoolean FilterType = "Boolean"
 
-//Search - filter for search text field
-const Search FilterType = "Search"
+//FtSearch - filter for search text field
+const FtSearch FilterType = "Search"
 
-//Constant - constant filter value
-const Constant FilterType = "Constant"
+//FtConstant - constant filter value
+const FtConstant FilterType = "Constant"
 
 //FilterSpec - filter specification
 type FilterSpec struct {
@@ -137,4 +136,12 @@ type FilterValues struct {
 	Values map[string][]interface{}
 	Dates  map[string]*DateRange
 	Ranges map[string]*NumberRange
+}
+
+func NewFilterValues() *FilterValues {
+	return &FilterValues{
+		Values: make(map[string][]interface{}),
+		Dates:  make(map[string]*DateRange),
+		Ranges: make(map[string]*NumberRange),
+	}
 }

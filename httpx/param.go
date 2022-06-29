@@ -30,6 +30,10 @@ func NewParamGetter(etx echo.Context) *ParamGetter {
 	}
 }
 
+func (pm *ParamGetter) Str(name string) string {
+	return pm.etx.Param(name)
+}
+
 func (pm *ParamGetter) Int(name string) int {
 	param := pm.etx.Param(name)
 	val, err := strconv.Atoi(param)
@@ -75,7 +79,7 @@ func (pm *ParamGetter) Float64(name string) float64 {
 	return val
 }
 
-func (pm *ParamGetter) BoolParam(name string) bool {
+func (pm *ParamGetter) Bool(name string) bool {
 	param := pm.etx.Param(name)
 	if str.EqFold(param, "true", "on") {
 		return true
@@ -84,6 +88,13 @@ func (pm *ParamGetter) BoolParam(name string) bool {
 	}
 	pm.errs[name] = errors.New("invalid string for bool param")
 	return false
+}
+
+func (pm *ParamGetter) QueryStr(name string) string {
+	if !pm.etx.QueryParams().Has(name) {
+		pm.errs[name] = errors.New("query param not found")
+	}
+	return pm.etx.QueryParam(name)
 }
 
 func (pm *ParamGetter) QueryInt(name string) int {
@@ -140,6 +151,13 @@ func (pm *ParamGetter) QueryBool(name string) bool {
 	}
 	pm.errs[name] = errors.New("invalid string for bool param")
 	return false
+}
+
+func (pm *ParamGetter) QueryStrOr(name, def string) string {
+	if !pm.etx.QueryParams().Has(name) {
+		return def
+	}
+	return pm.etx.QueryParam(name)
 }
 
 func (pm *ParamGetter) QueryIntOr(name string, def int) int {

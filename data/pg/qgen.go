@@ -71,10 +71,11 @@ func (pgd *PgGetterDeleter) Count(
 	gtx context.Context,
 	dtype string,
 	filter *data.Filter) (int64, error) {
-	query, args := GenQuery(filter, "SELECT COUNT(*) FROM %s", dtype)
+	sel := GenQuery(filter, "SELECT COUNT(*) FROM %s", dtype)
 
 	count := int64(0)
-	if err := defDB.SelectContext(gtx, &count, query, args); err != nil {
+	err := defDB.SelectContext(gtx, &count, sel.QueryFragment, sel.Args...)
+	if err != nil {
 		return 0, errx.Errf(
 			err, "failed to get count for data type '%s'", dtype)
 	}
@@ -84,11 +85,12 @@ func (pgd *PgGetterDeleter) Count(
 func (pgd *PgGetterDeleter) Get(
 	gtx context.Context,
 	dtype string,
-	params *data.QueryParams,
+	params *data.CommonParams,
 	out interface{}) error {
-	query, args := GenQueryX(params, "SELECT * FROM %s", dtype)
+	sel := GenQueryX(params, "SELECT * FROM %s", dtype)
 
-	if err := defDB.SelectContext(gtx, out, query, args); err != nil {
+	err := defDB.SelectContext(gtx, out, sel.QueryFragment, sel.Args...)
+	if err != nil {
 		return errx.Errf(err, "failed to get data for type '%s'", dtype)
 	}
 	return nil
@@ -97,8 +99,7 @@ func (pgd *PgGetterDeleter) Get(
 func (pgd *PgGetterDeleter) FilterValues(
 	gtx context.Context,
 	dtype string,
-	field string,
 	specs data.FilterSpecList,
-	filter *data.Filter) (data.M, error) {
-	return nil, nil
+	filter *data.Filter) (*data.FilterValues, error) {
+	return getFilterValues(gtx, dtype, specs, filter)
 }

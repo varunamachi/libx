@@ -8,6 +8,22 @@ import (
 	"github.com/varunamachi/libx/data"
 )
 
+type Selector struct {
+	QueryFragment string
+	Args          []interface{}
+}
+
+func (sel Selector) IsEmpty() bool {
+	return sel.QueryFragment == "" && len(sel.Args) == 0
+}
+
+func NewSel(qf string, args []interface{}) Selector {
+	return Selector{
+		QueryFragment: qf,
+		Args:          args,
+	}
+}
+
 type buffer struct {
 	strings.Builder
 }
@@ -23,19 +39,25 @@ func (buf *buffer) writeInt(val int64) *buffer {
 }
 
 func GenQueryX(
-	params *data.QueryParams,
+	params *data.CommonParams,
 	fmtStr string,
-	fargs ...string) (string, []interface{}) {
-	selector, args := NewSelectorGenerator().SelectorX(params)
-	return fmt.Sprintf(fmtStr, fargs) + " WHERE " + selector, args
+	fargs ...string) Selector {
+	selector := NewSelectorGenerator().SelectorX(params)
+	return NewSel(
+		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
+		selector.Args,
+	)
 }
 
 func GenQuery(
 	filter *data.Filter,
 	fmtStr string,
-	fargs ...string) (string, []interface{}) {
-	selector, args := NewSelectorGenerator().Selector(filter)
-	return fmt.Sprintf(fmtStr, fargs) + " WHERE " + selector, args
+	fargs ...string) Selector {
+	selector := NewSelectorGenerator().Selector(filter)
+	return NewSel(
+		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
+		selector.Args,
+	)
 }
 
 type SelectorGenerator struct {
@@ -56,8 +78,7 @@ func (gen *SelectorGenerator) Reset() *SelectorGenerator {
 	return gen
 }
 
-func (gen *SelectorGenerator) Selector(
-	filter *data.Filter) (string, []interface{}) {
+func (gen *SelectorGenerator) Selector(filter *data.Filter) Selector {
 	gen.Reset().
 		matchers(filter.Props).
 		bools(filter.Bools).
@@ -72,12 +93,11 @@ func (gen *SelectorGenerator) Selector(
 			buf.write(" AND ")
 		}
 	}
-	return buf.String(), gen.args
+	return NewSel(buf.String(), gen.args)
 
 }
 
-func (gen *SelectorGenerator) SelectorX(
-	cmnParam *data.QueryParams) (string, []interface{}) {
+func (gen *SelectorGenerator) SelectorX(cmnParam *data.CommonParams) Selector {
 
 	filter := cmnParam.Filter
 	gen.Reset().
@@ -95,21 +115,26 @@ func (gen *SelectorGenerator) SelectorX(
 		}
 	}
 
-	buf.write(" OFFSET = $").writeInt(gen.dollerIndex)
-	gen.addArg(cmnParam.Offset()).dollerIndex++
-	buf.write(" LIMIT = $").writeInt(gen.dollerIndex)
-	gen.addArg(cmnParam.Limit()).dollerIndex++
-	buf.write(" ORDER BY $").writeInt(gen.dollerIndex)
-	gen.addArg(cmnParam.Sort).dollerIndex++
-	if cmnParam.SortDesc {
-		buf.write(" DESC")
+	if cmnParam.Limit() != 0 {
+		buf.write(" OFFSET = $").writeInt(gen.dollerIndex)
+		gen.addArg(cmnParam.Offset()).dollerIndex++
+		buf.write(" LIMIT = $").writeInt(gen.dollerIndex)
+		gen.addArg(cmnParam.Limit()).dollerIndex++
 	}
-	return buf.String(), gen.args
+
+	if cmnParam.Sort != "" {
+		buf.write(" ORDER BY $").writeInt(gen.dollerIndex)
+		gen.addArg(cmnParam.Sort).dollerIndex++
+		buf.write(data.Qop(cmnParam.SortDesc, " DESC", " ASC"))
+	}
+
+	return NewSel(buf.String(), gen.args)
 }
 
 func (gen *SelectorGenerator) matchers(
 	pol map[string]*data.Matcher) *SelectorGenerator {
 	buf, idx := buffer{}, 0
+	buf.Grow(100)
 
 	for key, prop := range pol {
 		if len(prop.Fields) != 0 {
@@ -141,6 +166,7 @@ func (gen *SelectorGenerator) matchers(
 func (gen *SelectorGenerator) bools(
 	bools map[string]interface{}) *SelectorGenerator {
 	buf, idx := buffer{}, 0
+	buf.Grow(100)
 
 	for key, boolVal := range bools {
 		buf.write(key).write(" = $").writeInt(gen.dollerIndex)
@@ -158,6 +184,7 @@ func (gen *SelectorGenerator) bools(
 func (gen *SelectorGenerator) dateRanges(
 	dates map[string]*data.DateRangeMatcher) *SelectorGenerator {
 	buf, idx := buffer{}, 0
+	buf.Grow(100)
 
 	for key, dt := range dates {
 		buf.write(key)
@@ -181,6 +208,7 @@ func (gen *SelectorGenerator) dateRanges(
 func (gen *SelectorGenerator) ranges(
 	ranges map[string]*data.RangeMatcher) *SelectorGenerator {
 	buf, idx := buffer{}, 0
+	buf.Grow(100)
 
 	for key, dt := range ranges {
 		buf.write(key)
@@ -204,6 +232,7 @@ func (gen *SelectorGenerator) ranges(
 func (gen *SelectorGenerator) searches(
 	searches map[string]*data.Matcher) *SelectorGenerator {
 	buf, idx := buffer{}, 0
+	buf.Grow(100)
 
 	for key, prop := range searches {
 		if len(prop.Fields) != 0 {

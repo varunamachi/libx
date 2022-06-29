@@ -66,12 +66,6 @@ func (s *Server) Start(port uint32) error {
 
 func (s *Server) configure() {
 
-	// type groupPair struct {
-	// 	versionGrp *echo.Group
-	// 	inGrp      *echo.Group
-	// }
-	// authMw := getAuthMiddleware(s)
-	// groups := map[string]*groupPair{}
 	s.echo.HideBanner = true
 	s.echo.Use(getAccessMiddleware())
 	groups := map[string]*echo.Group{}
@@ -83,14 +77,6 @@ func (s *Server) configure() {
 			grp = s.echo.Group("api/" + ep.Version + "/")
 			groups[ep.Version] = grp
 		}
-
-		// grp := groups[ep.Version]
-		// if grp == nil {
-		// 	grp = &groupPair{}
-		// 	grp.versionGrp = s.root.Group("api/" + ep.Version)
-		// 	grp.inGrp = grp.versionGrp.Group("in")
-		// 	grp.inGrp.Use(authMw)
-		// }
 
 		if ep.NeedsAuth() {
 			ep.Route = grp.Add(
