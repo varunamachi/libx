@@ -6,61 +6,6 @@ import (
 
 type M map[string]any
 
-type CommonParams struct {
-	Filter   *Filter
-	Page     int64
-	PageSize int64
-	Sort     string
-	SortDesc bool
-}
-
-func (qp *CommonParams) Offset() int64 {
-	return qp.Page * qp.PageSize
-}
-
-func (qp *CommonParams) Limit() int64 {
-	return qp.PageSize
-}
-
-type Deleter interface {
-	Delete(
-		gtx context.Context,
-		dataType string,
-		keyField string,
-		keys ...interface{}) error
-}
-
-type Getter interface {
-	Count(
-		gtx context.Context,
-		dtype string,
-		filter *Filter) (int64, error)
-
-	GetOne(
-		gtx context.Context,
-		dataType string,
-		keyField string,
-		keys []interface{},
-		dataOut interface{}) error
-
-	Get(
-		gtx context.Context,
-		dtype string,
-		params *CommonParams,
-		out interface{}) error
-
-	FilterValues(
-		gtx context.Context,
-		dtype string,
-		specs FilterSpecList,
-		filter *Filter) (*FilterValues, error)
-}
-
-type GetterDeleter interface {
-	Getter
-	Deleter
-}
-
 //FilterType - Type of filter item
 type FilterType string
 
@@ -68,7 +13,7 @@ type FilterType string
 const FtProp FilterType = "Prop"
 
 //FtArray - filter for an array
-const FtArray FilterType = "arrayArray"
+const FtArray FilterType = "Array"
 
 //DateRange - filter for date range
 const FtDateRange FilterType = "DateRange"
@@ -144,4 +89,59 @@ func NewFilterValues() *FilterValues {
 		Dates:  make(map[string]*DateRange),
 		Ranges: make(map[string]*NumberRange),
 	}
+}
+
+type CommonParams struct {
+	Filter   *Filter
+	Page     int64
+	PageSize int64
+	Sort     string
+	SortDesc bool
+}
+
+func (qp *CommonParams) Offset() int64 {
+	return qp.Page * qp.PageSize
+}
+
+func (qp *CommonParams) Limit() int64 {
+	return qp.PageSize
+}
+
+type Deleter interface {
+	Delete(
+		gtx context.Context,
+		dataType string,
+		keyField string,
+		keys ...interface{}) error
+}
+
+type Getter interface {
+	Count(
+		gtx context.Context,
+		dtype string,
+		filter *Filter) (int64, error)
+
+	GetOne(
+		gtx context.Context,
+		dataType string,
+		keyField string,
+		keys []interface{},
+		dataOut interface{}) error
+
+	Get(
+		gtx context.Context,
+		dtype string,
+		params *CommonParams,
+		out interface{}) error
+
+	FilterValues(
+		gtx context.Context,
+		dtype string,
+		specs FilterSpecList,
+		filter *Filter) (*FilterValues, error)
+}
+
+type GetterDeleter interface {
+	Getter
+	Deleter
 }

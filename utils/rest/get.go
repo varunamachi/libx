@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/varunamachi/libx/data"
+	"github.com/varunamachi/libx/data/pg"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/httpx"
 )
@@ -48,12 +49,12 @@ func GetFilter(etx echo.Context) (*data.Filter, error) {
 func Get[T any](etx echo.Context, gdr data.GetterDeleter) ([]T, error) {
 	dtype := etx.Param("dtype")
 	if dtype == "" {
-		return nil, errx.BadReqf("data type not given")
+		return nil, errx.BadReq("data type not given")
 	}
 
 	cparams, err := GetCommonParams(etx)
 	if err != nil {
-		return nil, errx.BadReqXf(err,
+		return nil, errx.BadReqX(err,
 			"failed to get common parameters to get '%s'", dtype)
 	}
 
@@ -69,14 +70,54 @@ func Get[T any](etx echo.Context, gdr data.GetterDeleter) ([]T, error) {
 func Count(etx echo.Context, gdr data.GetterDeleter) (int64, error) {
 	dtype := etx.Param("dtype")
 	if dtype == "" {
-		return 0, errx.BadReqf("data type not given")
+		return 0, errx.BadReq("data type not given")
 	}
 
 	filter, err := GetFilter(etx)
 	if err != nil {
-		return 0, errx.BadReqXf(err,
+		return 0, errx.BadReqX(err,
 			"failed to get filter to count in '%s'", dtype)
 	}
 
 	return gdr.Count(etx.Request().Context(), dtype, filter)
+}
+
+func GetX[T any](etx echo.Context, tableQuery string) ([]T, error) {
+
+	cparams, err := GetCommonParams(etx)
+	if err != nil {
+		return nil, errx.BadReqX(err,
+			"failed to get common parameters to get data")
+	}
+
+	sel := pg.NewSelectorGenerator().SelectorX(cparams)
+	query := tableQuery + " WHERE " + sel.QueryFragment
+
+	out := make([]T, 0, 100)
+
+	err = pg.Conn().SelectContext(
+		etx.Request().Context(), &out, query, sel.Args...)
+	if err != nil {
+		return nil, errx.Errf(err, "failed to get data")
+	}
+	return out, nil
+}
+
+func GetOne[T any](etx echo.Context, tableQuery string) (T, error) {
+	filter, err := GetFilter(etx)
+	var out T
+	if err != nil {
+		return out, errx.BadReqX(err,
+			"failed to get filter to count")
+	}
+
+	sel := pg.NewSelectorGenerator().Selector(filter)
+	query := tableQuery + " WHERE " + sel.QueryFragment
+
+	err = pg.Conn().GetContext(
+		etx.Request().Context(), &out, query, sel.Args...)
+	if err != nil {
+		return out, errx.Errf(err, "failed to get data")
+	}
+	return out, nil
 }

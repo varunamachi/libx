@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func BadReqXf(e error, msg string, args ...interface{}) *echo.HTTPError {
+func BadReqX(e error, msg string, args ...interface{}) *echo.HTTPError {
 	if len(args) != 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
@@ -19,7 +19,7 @@ func BadReqXf(e error, msg string, args ...interface{}) *echo.HTTPError {
 	}
 }
 
-func BadReqf(msg string, args ...interface{}) *echo.HTTPError {
+func BadReq(msg string, args ...interface{}) *echo.HTTPError {
 	if len(args) != 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
