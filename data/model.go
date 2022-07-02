@@ -2,9 +2,28 @@ package data
 
 import (
 	"context"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 )
 
 type M map[string]any
+
+func (u M) Value() (driver.Value, error) {
+	return json.Marshal(u)
+}
+
+func (u *M) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &u)
+}
 
 //FilterType - Type of filter item
 type FilterType string
