@@ -63,3 +63,23 @@ func stackPrinter(err error, indent string) {
 	}
 	fmt.Printf("%s> %v\n", indent, err)
 }
+
+func StackArray(err error) []string {
+	errs := make([]string, 0, 10)
+	errStackArray(err, 10, 0, errs)
+	return errs
+}
+
+func errStackArray(in error, maxDepth, curDepth int, out []string) {
+	if in == nil {
+		return
+	}
+
+	out = append(out, Str(in))
+	ex, ok := in.(*Error)
+	if ok && curDepth < maxDepth {
+		curDepth++
+		errStackArray(ex.Err, maxDepth, curDepth, out)
+		return
+	}
+}
