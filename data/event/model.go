@@ -55,12 +55,12 @@ func (t Type) String() string {
 }
 
 type Event struct {
-	Name   string
-	UserId string
-	Type   Type
-	Time   time.Time
-	Error  []string
-	Data   data.M
+	Op        string    `json:"op" db:"op" bson:"op"`
+	UserId    string    `json:"userId" db:"op" bson:"userId"`
+	Type      Type      `json:"type" db:"ev_type" bson:"type"`
+	CreatedOn time.Time `json:"createdOn" db:"creadted_on" bson:"createdOn"`
+	Error     []string  `json:"error" db:"error" bson:"error"`
+	Metadata  data.M    `json:"metadata" db:"metadata" bson:"metadata"`
 }
 
 type Service interface {
@@ -76,15 +76,15 @@ type Adder struct {
 func NewAdder(
 	gtx context.Context,
 	service Service,
-	name, userId string,
+	op, userId string,
 	md data.M) *Adder {
 
 	return &Adder{
 		event: &Event{
-			Name:   name,
-			UserId: userId,
-			Type:   None,
-			Data:   md,
+			Op:       op,
+			UserId:   userId,
+			Type:     None,
+			Metadata: md,
 		},
 		service: service,
 		gtx:     gtx,
@@ -97,7 +97,18 @@ func (adder *Adder) SetType(t Type) *Adder {
 }
 
 func (adder *Adder) SetData(md data.M) *Adder {
-	adder.event.Data = md
+	adder.event.Metadata = md
+	return adder
+}
+
+func (adder *Adder) AddData(name string, md any) *Adder {
+	if adder.event.Metadata == nil {
+		adder.event.Metadata = data.M{
+			name: md,
+		}
+		return adder
+	}
+	adder.event.Metadata[name] = md
 	return adder
 }
 
@@ -107,13 +118,11 @@ func (adder *Adder) SetUser(userId string) *Adder {
 }
 
 func (adder *Adder) Commit(err error) error {
-	if err != nil {
-		if adder.event.Type == None {
-			adder.event.Type = Error
-		}
+	if adder.event.Type == None {
+		adder.event.Type = data.Qop(err != nil, Error, Success)
 		adder.event.Error = errx.StackArray(err)
 	}
-	adder.event.Time = time.Now()
+	adder.event.CreatedOn = time.Now()
 	if e2 := adder.service.AddEvent(adder.gtx, adder.event); e2 != nil {
 		log.Error().Err(err).Msg("failed to add event to system")
 	}
