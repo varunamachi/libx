@@ -137,6 +137,24 @@ func (ar *ApiResult) Error() error {
 	return ar.err
 }
 
+func (ar *ApiResult) Close() error {
+	defer func() {
+		if ar.resp != nil && ar.resp.Body != nil {
+			ar.resp.Body.Close()
+		}
+	}()
+
+	if ar.err != nil {
+		return ar.err
+	}
+
+	if ar.resp == nil || ar.resp.Body == nil {
+		ar.err = errx.Errf(ErrInvalidResponse,
+			"No valid http response received")
+	}
+	return ar.err
+}
+
 type Client struct {
 	*http.Client
 	address     string
