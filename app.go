@@ -76,7 +76,7 @@ func (app *App) WithServer(port int, userGetter auth.UserRetrieverFunc) *App {
 }
 
 func (app *App) WithEndpoints(ep ...*httpx.Endpoint) *App {
-	app.server.AddEndpoints(ep...)
+	app.server.WithEndpoints(ep...)
 	return app
 }
 

@@ -14,9 +14,10 @@ import (
 type AuthData map[string]interface{}
 
 var (
-	ErrAuthentication = errors.New("auth.user.authenticationError")
-	ErrUserRetrieval  = errors.New("auth.user.retrievalError")
-	ErrToken          = errors.New("auth.user.authTokenError")
+	ErrAuthentication         = errors.New("auth.user.authenticationError")
+	ErrUserRetrieval          = errors.New("auth.user.retrievalError")
+	ErrToken                  = errors.New("auth.user.authTokenError")
+	ErrInsufficientPrivileges = errors.New("auth.user.insufficient.privs")
 )
 
 type Authenticator interface {

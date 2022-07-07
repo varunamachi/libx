@@ -53,7 +53,7 @@ func NewServer(printer io.Writer, userGetter auth.UserRetrieverFunc) *Server {
 	}
 }
 
-func (s *Server) AddEndpoints(ep ...*Endpoint) *Server {
+func (s *Server) WithEndpoints(ep ...*Endpoint) *Server {
 	s.endpoints = append(s.endpoints, ep...)
 	return s
 }
