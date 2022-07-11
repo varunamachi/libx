@@ -1,6 +1,7 @@
 package pg
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
@@ -51,8 +52,8 @@ func (c *ConnOpts) Url() (*url.URL, error) {
 }
 
 //connect - connects to DB based on connection string or URL
-func Connect(url *url.URL) (*sqlx.DB, error) {
-	if err := netx.WaitForPorts(url.Host, 20*time.Second); err != nil {
+func Connect(gtx context.Context, url *url.URL) (*sqlx.DB, error) {
+	if err := netx.WaitForPorts(gtx, url.Host, 60*time.Second); err != nil {
 		log.Error().Err(err)
 		return nil, err
 	}
@@ -64,12 +65,13 @@ func Connect(url *url.URL) (*sqlx.DB, error) {
 }
 
 //ConnectWithOpts - connect to postgresdb based on given options
-func ConnectWithOpts(opts *ConnOpts) (db *sqlx.DB, err error) {
+func ConnectWithOpts(
+	gtx context.Context, opts *ConnOpts) (db *sqlx.DB, err error) {
 	u, err := opts.Url()
 	if err != nil {
 		return nil, errx.Errf(err, "failed to create pg URL")
 	}
-	return Connect(u)
+	return Connect(gtx, u)
 }
 
 //NamedConn - gives connection to database associated with given name. If no

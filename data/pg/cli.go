@@ -8,7 +8,7 @@ import (
 	"github.com/varunamachi/libx/errx"
 )
 
-func WithPostgres(cmd *cli.Command) *cli.Command {
+func Wrap(cmd *cli.Command) *cli.Command {
 	cmd.Flags = append(cmd.Flags,
 		&cli.StringFlag{
 			Name: "pg-url",
@@ -77,14 +77,14 @@ func requirePostgres(ctx *cli.Context) error {
 			return errx.Errf(err, "invalid URL '%s' given")
 		}
 
-		db, err := Connect(u)
+		db, err := Connect(ctx.Context, u)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
 			return err
 		}
 		SetDefaultConn(db)
 	} else {
-		db, err := ConnectWithOpts(&ConnOpts{
+		db, err := ConnectWithOpts(ctx.Context, &ConnOpts{
 			Host:     ctx.String("pg-host"),
 			Port:     ctx.Int("pg-port"),
 			User:     ctx.String("pg-user"),
