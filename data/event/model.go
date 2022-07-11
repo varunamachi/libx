@@ -56,7 +56,7 @@ func (t Type) String() string {
 
 type Event struct {
 	Op        string    `json:"op" db:"op" bson:"op"`
-	UserId    string    `json:"userId" db:"op" bson:"userId"`
+	UserId    string    `json:"userId" db:"user_id" bson:"userId"`
 	Type      Type      `json:"type" db:"ev_type" bson:"type"`
 	CreatedOn time.Time `json:"createdOn" db:"creadted_on" bson:"createdOn"`
 	Error     []string  `json:"error" db:"error" bson:"error"`
@@ -124,7 +124,7 @@ func (adder *Adder) Commit(err error) error {
 	}
 	adder.event.CreatedOn = time.Now()
 	if e2 := adder.service.AddEvent(adder.gtx, adder.event); e2 != nil {
-		log.Error().Err(err).Msg("failed to add event to system")
+		log.Error().Err(e2).Msg("failed to add event to system")
 	}
 	return err
 }
