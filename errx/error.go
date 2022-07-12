@@ -65,21 +65,15 @@ func stackPrinter(err error, indent string) {
 }
 
 func StackArray(err error) []string {
-	errs := make([]string, 0, 10)
-	errStackArray(err, 10, 0, errs)
+	const maxDepth = 5
+	errs := make([]string, 0, maxDepth)
+	for depth := 0; depth < maxDepth; depth++ {
+		ex, ok := err.(*Error)
+		if !ok {
+			break
+		}
+		errs = append(errs, Str(ex))
+		err = ex.Err
+	}
 	return errs
-}
-
-func errStackArray(in error, maxDepth, curDepth int, out []string) {
-	if in == nil {
-		return
-	}
-
-	out = append(out, Str(in))
-	ex, ok := in.(*Error)
-	if ok && curDepth < maxDepth {
-		curDepth++
-		errStackArray(ex.Err, maxDepth, curDepth, out)
-		return
-	}
 }
