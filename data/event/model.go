@@ -56,9 +56,9 @@ func (t Type) String() string {
 
 type Event struct {
 	Op        string    `json:"op" db:"op" bson:"op"`
-	UserId    string    `json:"userId" db:"user_id" bson:"userId"`
 	Type      Type      `json:"type" db:"ev_type" bson:"type"`
-	CreatedOn time.Time `json:"createdOn" db:"creadted_on" bson:"createdOn"`
+	UserId    string    `json:"userId" db:"user_id" bson:"userId"`
+	CreatedOn time.Time `json:"createdOn" db:"created_on" bson:"createdOn"`
 	Error     []string  `json:"error" db:"error" bson:"error"`
 	Metadata  data.M    `json:"metadata" db:"metadata" bson:"metadata"`
 }
