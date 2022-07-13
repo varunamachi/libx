@@ -59,7 +59,7 @@ type Event struct {
 	Type      Type      `json:"type" db:"ev_type" bson:"type"`
 	UserId    string    `json:"userId" db:"user_id" bson:"userId"`
 	CreatedOn time.Time `json:"createdOn" db:"created_on" bson:"createdOn"`
-	Error     []string  `json:"error" db:"error" bson:"error"`
+	Error     []string  `json:"errors" db:"errors" bson:"errors"`
 	Metadata  data.M    `json:"metadata" db:"metadata" bson:"metadata"`
 }
 

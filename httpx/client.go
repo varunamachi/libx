@@ -3,7 +3,6 @@ package httpx
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,10 +16,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/errx"
-	"github.com/varunamachi/libx/iox"
 )
 
 var (
@@ -34,6 +31,8 @@ var (
 	ErrInvalidResponse = errors.New("client.http.invalidResponse")
 	ErrClientError     = errors.New("client.http.clientError")
 )
+
+type AuthData map[string]interface{}
 
 type ApiResult struct {
 	resp   *http.Response
@@ -197,6 +196,20 @@ func NewCustom(
 	}
 }
 
+func (client *Client) SetUser(user auth.User) *Client {
+	client.user = user
+	return client
+}
+
+func (client *Client) SetToken(token string) *Client {
+	client.token = token
+	return client
+}
+
+func (client *Client) User() auth.User {
+	return client.user
+}
+
 func (client *Client) RemoteHost() (string, error) {
 	url, err := url.Parse(client.address)
 	if err != nil {
@@ -319,139 +332,4 @@ func (client *Client) Delete(
 	}
 
 	return newApiResult(req, resp)
-}
-
-func (client *Client) User() auth.User {
-	return client.user
-}
-
-type AuthData map[string]interface{}
-
-type LoginConfig struct {
-	LoginURL string
-	UserOut  auth.User
-}
-
-func (client *Client) Login(
-	gtx context.Context,
-	lc *LoginConfig,
-	authData AuthData) error {
-
-	if authData == nil {
-		return nil
-	}
-
-	loginResult := struct {
-		Token   string    `json:"token"`
-		UserOut auth.User `json:"user"`
-	}{
-		"",
-		lc.UserOut,
-	}
-
-	rr := client.Post(gtx, authData, lc.LoginURL)
-	if err := rr.LoadClose(&loginResult); err != nil {
-		return err
-	}
-	client.token = loginResult.Token
-	client.user = loginResult.UserOut
-	return nil
-}
-
-func CreateClient(lc *LoginConfig, ctx *cli.Context) (
-	*Client, error) {
-	host := ctx.String("host")
-	ignCertErrs := ctx.Bool("ignore-cert-errors")
-	timeOut := ctx.Int("timeout-secs")
-
-	tp := DefaultTransport()
-	if ignCertErrs {
-		tp.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: ignCertErrs,
-		}
-	}
-	client := NewCustom(host, "", tp, time.Duration(timeOut)*time.Second)
-
-	if lc == nil {
-		return client, nil
-	}
-
-	userId := ctx.String("user-id")
-	password := ctx.String("password")
-	if password == "" {
-		password = iox.AskPassword(fmt.Sprintf("Password for '%s'", userId))
-	}
-
-	err := client.Login(ctx.Context, lc, AuthData{
-		"userId":   userId,
-		"password": password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func WithClientFlags(
-	withAuth bool,
-	envPrefix string,
-	flags ...cli.Flag) []cli.Flag {
-	flags = append(flags,
-		&cli.StringFlag{
-			Name: "host",
-			Usage: "Full address of the host with URL scheme, host name/IP " +
-				"and port",
-			EnvVars: []string{
-				envPrefix + "_CLIENT_REMOTE_HOST",
-				"LIBX_CLIENT_REMOTE_HOST",
-			},
-			Required: true,
-		},
-		&cli.BoolFlag{
-			Name: "ignore-cert-errors",
-			Usage: "Ignore certificate errors while connecting to a HTTPS " +
-				"service",
-			Value: false,
-			EnvVars: []string{
-				envPrefix + "_CLIENT_IGNORE_CERT_ERR",
-				"LIBX_CLIENT_IGNORE_CERT_ERR",
-			},
-		},
-		&cli.IntFlag{
-			Name:  "timeout-secs",
-			Usage: "Time out in seconds",
-			Value: 20,
-			EnvVars: []string{
-				envPrefix + "_CLIENT_TIMEOUT_SECS",
-				"LIBX_CLIENT_TIMEOUT_SECS",
-			},
-		},
-	)
-	if withAuth {
-		flags = append(flags,
-			&cli.StringFlag{
-				Name:     "user-id",
-				Usage:    "User present in the remote service",
-				Required: false,
-				EnvVars: []string{
-					envPrefix + "_CLIENT_USER_ID",
-					"LIBX_CLIENT_USER_ID",
-				},
-			},
-			&cli.StringFlag{
-				Name: "password",
-				Usage: "Password for the user, only use for development " +
-					"purposes",
-				Required: false,
-				Hidden:   true,
-				EnvVars: []string{
-					envPrefix + "_CLIENT_PASSWORD",
-					"LIBX_CLIENT_PASSWORD",
-				},
-			},
-		)
-	}
-
-	return flags
 }
