@@ -70,6 +70,14 @@ func NewApp(name, description, versionStr, author string) *App {
 	return app
 }
 
+func NewCustomApp(cApp *cli.App) *App {
+	app := &App{
+		App: cApp,
+	}
+	app.Metadata = map[string]interface{}{"app": app}
+	return app
+}
+
 func (app *App) WithServer(port int, userGetter auth.UserRetrieverFunc) *App {
 	app.server = httpx.NewServer(os.Stdout, userGetter)
 	return app
