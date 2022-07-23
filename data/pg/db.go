@@ -98,3 +98,15 @@ func SetDefaultConn(db *sqlx.DB) {
 func Conn() *sqlx.DB {
 	return defDB
 }
+
+func Rollback(op string, tx *sqlx.Tx) {
+	if err := tx.Rollback(); err != nil {
+		log.Error().Err(err).Str("op", op).Msg("failed to rollback transaction")
+	}
+}
+
+// func Commit(op string, tx *sqlx.Tx) {
+// 	if err := tx.Commit(); err != nil {
+// 		log.Error().Err(err).Str("op", op).Msg("failed to commit transaction")
+// 	}
+// }
