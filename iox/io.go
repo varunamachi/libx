@@ -136,3 +136,8 @@ func AskPassword(name string) string {
 	secret, _ := askSecret()
 	return strings.TrimSpace(secret)
 }
+
+func AskDangerous(question string, def bool) bool {
+	uir := NewUserInputReader(os.Stdin, os.Stdout)
+	return uir.BoolOr(question, def)
+}
