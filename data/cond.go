@@ -15,3 +15,12 @@ func CondExec(cond bool, trueFunc, falseFunc func() error) error {
 	}
 	return falseFunc()
 }
+
+func OneOf[T comparable](tgt T, opts ...T) bool {
+	for _, opt := range opts {
+		if tgt == opt {
+			return true
+		}
+	}
+	return false
+}
