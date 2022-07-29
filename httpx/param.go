@@ -26,7 +26,8 @@ type ParamGetter struct {
 
 func NewParamGetter(etx echo.Context) *ParamGetter {
 	return &ParamGetter{
-		etx: etx,
+		etx:  etx,
+		errs: make(map[string]error),
 	}
 }
 
@@ -251,6 +252,23 @@ func (pm *ParamGetter) Error() error {
 		index++
 	}
 	return errx.Errf(ErrHttpParam, buf.String())
+}
+
+func (pm *ParamGetter) BadReqError() error {
+	if len(pm.errs) == 0 {
+		return nil
+	}
+	buf := bytes.NewBufferString("http parameter error: ")
+	index := 0
+	for k := range pm.errs {
+		buf.WriteString(k)
+		if index < len(pm.errs)-1 {
+			buf.WriteString(", ")
+		}
+		index++
+	}
+	// return errx.Errf(ErrHttpParam, buf.String())
+	return errx.BadReq(buf.String())
 }
 
 func (pm *ParamGetter) WriteDetailedError(w io.Writer) {

@@ -55,11 +55,12 @@ func (t Type) String() string {
 }
 
 type Event struct {
+	Id        uint64    `json:"id" db:"id" bson:"id"`
 	Op        string    `json:"op" db:"op" bson:"op"`
 	Type      Type      `json:"type" db:"ev_type" bson:"type"`
 	UserId    string    `json:"userId" db:"user_id" bson:"userId"`
 	CreatedOn time.Time `json:"createdOn" db:"created_on" bson:"createdOn"`
-	Error     []string  `json:"errors" db:"errors" bson:"errors"`
+	Errors    []string  `json:"errors" db:"errors" bson:"errors"`
 	Metadata  data.M    `json:"metadata" db:"metadata" bson:"metadata"`
 }
 
@@ -120,7 +121,7 @@ func (adder *Adder) SetUser(userId string) *Adder {
 func (adder *Adder) Commit(err error) error {
 	if adder.event.Type == None {
 		adder.event.Type = data.Qop(err != nil, Error, Success)
-		adder.event.Error = errx.StackArray(err)
+		adder.event.Errors = errx.StackArray(err)
 	}
 	adder.event.CreatedOn = time.Now()
 	if e2 := adder.service.AddEvent(adder.gtx, adder.event); e2 != nil {
