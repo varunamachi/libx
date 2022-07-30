@@ -60,9 +60,9 @@ func newApiResult(req *http.Request, resp *http.Response) *ApiResult {
 	case http.StatusUnauthorized:
 		err = ErrUnauthorized
 	case http.StatusForbidden:
-		err = ErrUnauthorized
+		err = ErrForbidden
 	case http.StatusInternalServerError:
-		err = ErrUnauthorized
+		err = ErrInternalServerError
 	default:
 		if resp.StatusCode >= 400 {
 			err = ErrOtherStatus

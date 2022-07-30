@@ -5,6 +5,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
+
+	"github.com/lib/pq"
 )
 
 type M map[string]any
@@ -23,6 +26,27 @@ func (u *M) Scan(value interface{}) error {
 	}
 
 	return json.Unmarshal(b, &u)
+}
+
+type Arr interface {
+	int64 | float64 | bool | []byte | string | time.Time
+}
+
+type Vec[T Arr] []T
+
+func (v Vec[T]) Value() (driver.Value, error) {
+	return pq.Array(v).Value()
+}
+
+func (v *Vec[T]) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	return pq.Array((*[]T)(v)).Scan(value)
+}
+
+func (v Vec[T]) AsSlice() []T {
+	return ([]T)(v)
 }
 
 //FilterType - Type of filter item
