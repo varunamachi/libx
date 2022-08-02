@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type noopWriter struct{}
@@ -33,8 +35,10 @@ func (ep *Endpoint) NeedsAuth() bool {
 }
 
 type Server struct {
-	categories    map[string][]*Endpoint
-	endpoints     []*Endpoint
+	apiCatg       map[string][]*Endpoint
+	pageCatg      map[string][]*Endpoint
+	apiEps        []*Endpoint
+	pageEps       []*Endpoint
 	echo          *echo.Echo
 	printer       io.Writer
 	userRetriever auth.UserRetrieverFunc
@@ -45,16 +49,23 @@ func NewServer(printer io.Writer, userGetter auth.UserRetrieverFunc) *Server {
 		printer = &noopWriter{}
 	}
 	return &Server{
-		categories:    make(map[string][]*Endpoint),
-		endpoints:     make([]*Endpoint, 0, 100),
+		apiCatg:       make(map[string][]*Endpoint),
+		pageCatg:      make(map[string][]*Endpoint),
+		apiEps:        make([]*Endpoint, 0, 100),
+		pageEps:       make([]*Endpoint, 0, 100),
 		echo:          echo.New(),
 		printer:       printer,
 		userRetriever: userGetter,
 	}
 }
 
-func (s *Server) WithEndpoints(ep ...*Endpoint) *Server {
-	s.endpoints = append(s.endpoints, ep...)
+func (s *Server) WithAPIs(ep ...*Endpoint) *Server {
+	s.apiEps = append(s.apiEps, ep...)
+	return s
+}
+
+func (s *Server) WithPages(ep ...*Endpoint) *Server {
+	s.pageEps = append(s.pageEps, ep...)
 	return s
 }
 
@@ -70,7 +81,7 @@ func (s *Server) configure() {
 	s.echo.Use(getAccessMiddleware())
 	groups := map[string]*echo.Group{}
 
-	for _, ep := range s.endpoints {
+	for _, ep := range s.apiEps {
 		ep := ep
 		grp := groups[ep.Version]
 		if grp == nil {
@@ -90,24 +101,55 @@ func (s *Server) configure() {
 				ep.Method, ep.Path, ep.Handler)
 		}
 
-		if _, found := s.categories[ep.Category]; !found {
-			s.categories[ep.Category] = make([]*Endpoint, 0, 20)
+		if _, found := s.apiCatg[ep.Category]; !found {
+			s.apiCatg[ep.Category] = make([]*Endpoint, 0, 20)
 		}
-		s.categories[ep.Category] = append(s.categories[ep.Category], ep)
+		s.apiCatg[ep.Category] = append(s.apiCatg[ep.Category], ep)
+	}
+
+	// For simplicity we just duplicate the loop for pages
+	for _, ep := range s.pageEps {
+		if ep.NeedsAuth() {
+			ep.Route = s.echo.Add(
+				ep.Method,
+				ep.Path,
+				ep.Handler,
+				getAuthzMiddleware(ep, s))
+
+		} else {
+			ep.Route = s.echo.Add(
+				ep.Method, ep.Path, ep.Handler)
+		}
+
+		if _, found := s.apiCatg[ep.Category]; !found {
+			s.pageCatg[ep.Category] = make([]*Endpoint, 0, 20)
+		}
+		s.pageCatg[ep.Category] = append(s.pageCatg[ep.Category], ep)
 	}
 }
 
 func (s *Server) Print() {
-	for _, ep := range s.endpoints {
-		cat := ep.Category
-		if len(cat) > 14 {
-			cat = ep.Category[:14]
+	// for _, ep := range s.apiEps {
+	// 	cat := ep.Category
+	// 	if len(cat) > 14 {
+	// 		cat = ep.Category[:14]
+	// 	}
+	// 	fmt.Fprintf(s.printer,
+	// 		"%-3s %-5s %-40s %-15s %s\n",
+	// 		ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
+	// }
+	// fmt.Print("\n\n")
+
+	caser := cases.Upper(language.English)
+	for cat, eps := range s.apiCatg {
+		fmt.Fprintln(s.printer, caser.String(cat))
+		for _, ep := range eps {
+			fmt.Fprintf(s.printer,
+				"    |--  %-3s %-5s %-40s %s\n",
+				ep.Version, ep.Route.Method, ep.Route.Path, ep.Desc)
 		}
-		fmt.Fprintf(s.printer,
-			"%-3s %-5s %-40s %-15s %s\n",
-			ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
+		fmt.Fprintln(s.printer)
 	}
-	fmt.Print("\n\n")
 }
 
 func (s *Server) Close() error {
