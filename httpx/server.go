@@ -150,6 +150,18 @@ func (s *Server) Print() {
 		}
 		fmt.Fprintln(s.printer)
 	}
+	fmt.Fprintln(s.printer, "\nPAGES:")
+	for _, ep := range s.pageEps {
+		cat := ep.Category
+		if len(cat) > 14 {
+			cat = ep.Category[:14]
+		}
+
+		fmt.Fprintf(s.printer,
+			"%-3s %-5s %-40s %-15s %s\n",
+			ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
+	}
+	fmt.Fprintln(s.printer, "")
 }
 
 func (s *Server) Close() error {
