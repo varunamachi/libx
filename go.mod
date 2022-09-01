@@ -12,6 +12,8 @@ require (
 	go.mongodb.org/mongo-driver v1.9.1
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
+	golang.org/x/text v0.3.7
+
 )
 
 require (
@@ -21,7 +23,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
-	github.com/lib/pq v1.10.6 // indirect
+	github.com/lib/pq v1.10.6
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.13 // indirect
@@ -37,5 +39,4 @@ require (
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
-	golang.org/x/text v0.3.7 // indirect
 )
