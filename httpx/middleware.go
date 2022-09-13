@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/golang-jwt/jwt"
@@ -22,7 +21,8 @@ func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 	if itk != nil {
 		var ok bool
 		if token, ok = itk.(*jwt.Token); !ok {
-			err = fmt.Errorf("invalid token found in context")
+			err = errx.New("jwt.tokenInvalid",
+				"invalid token found in context")
 		}
 	} else {
 		header := ctx.Request().Header.Get("Authorization")
@@ -34,42 +34,52 @@ func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 			}
 			token, err = jwt.Parse(tokStr, keyFunc)
 		} else {
-			err = fmt.Errorf("unexpected auth scheme used to JWT")
+			err = errx.New("jwt.invalidScheme",
+				"unexpected auth scheme used to JWT")
 		}
 	}
 	return token, err
 }
 
 //RetrieveSessionInfo - retrieves session information from JWT token
-func retrieveUserId(ctx echo.Context) (string, error) {
+func retrieveUserId(ctx echo.Context) (string, string, error) {
 	token, err := getToken(ctx)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", fmt.Errorf("invalid claims in JWT")
+		return "", "", errx.New("jwt.invalidClaims", "invalid claims in JWT")
 	}
 
 	userId, ok := claims["userId"].(string)
 	if !ok {
-		return "", fmt.Errorf("couldnt find userId in token")
+		return "", "", errx.New("jwt.invalidUserId",
+			"couldnt find userId in token")
 	}
 
-	return userId, nil
+	userType, _ := claims["type"].(string)
+	return userId, userType, nil
 }
 
 func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(etx echo.Context) error {
-			userId, err := retrieveUserId(etx)
+			userId, userType, err := retrieveUserId(etx)
 			if err != nil {
 				return &echo.HTTPError{
 					Code:     http.StatusForbidden,
 					Message:  "invalid JWT information",
 					Internal: err,
 				}
+			}
+
+			// This check is for non-DB users
+			if userType != "" && userType != "user" {
+				etx.Set("endpoint", ep)
+				etx.Set("userId", userId)
+				return next(etx)
 			}
 
 			// ep, ok := etx.Get("endpoint").(Endpoint)
@@ -96,6 +106,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 
 			etx.Set("endpoint", ep)
 			etx.Set("user", user)
+			etx.Set("userId", userId)
 			return next(etx)
 		}
 	}

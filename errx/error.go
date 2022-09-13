@@ -1,6 +1,7 @@
 package errx
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 )
@@ -37,6 +38,11 @@ func Errf(inner error, msg string, args ...interface{}) *Error {
 		msg = fmt.Sprintf(msg, args...)
 	}
 	return &Error{Err: inner, Msg: msg, File: file, Line: line}
+}
+
+func New(code, msg string) *Error {
+	_, file, line, _ := runtime.Caller(1)
+	return &Error{Err: errors.New(code), Msg: msg, File: file, Line: line}
 }
 
 func Str(err error) string {

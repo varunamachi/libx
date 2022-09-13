@@ -53,6 +53,7 @@ func Login(
 	claims := token.Claims.(jwt.MapClaims)
 	claims["userId"] = user.Id()
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["type"] = "user"
 
 	signed, err := token.SignedString(GetJWTKey())
 	if err != nil {
