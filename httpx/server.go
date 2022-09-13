@@ -31,7 +31,7 @@ type Endpoint struct {
 }
 
 func (ep *Endpoint) NeedsAuth() bool {
-	return ep.Permission != "" && ep.Role != auth.None && ep.Role != ""
+	return ep.Permission != "" || (ep.Role != auth.None && ep.Role != "")
 }
 
 type Server struct {
