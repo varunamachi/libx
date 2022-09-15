@@ -52,7 +52,8 @@ func Login(
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["userId"] = user.Id()
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 24 * 10).Unix()
+	// claims["exp"] = time.Now().Add(time.Minute).Unix()
 	claims["type"] = "user"
 
 	signed, err := token.SignedString(GetJWTKey())
