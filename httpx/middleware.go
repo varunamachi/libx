@@ -69,7 +69,8 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			userId, userType, err := retrieveUserId(etx)
 			if err != nil {
 				return &echo.HTTPError{
-					Code:     http.StatusForbidden,
+					// Code:     http.StatusForbidden,
+					Code:     http.StatusUnauthorized,
 					Message:  "invalid JWT information",
 					Internal: err,
 				}
@@ -99,7 +100,8 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 				auth.HasRole(user, ep.Role)
 			if !hasAccess {
 				return &echo.HTTPError{
-					Code:    http.StatusUnauthorized,
+					// Code:    http.StatusUnauthorized,
+					Code:    http.StatusForbidden,
 					Message: "permission to access resource is denied",
 				}
 			}
