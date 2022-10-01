@@ -20,7 +20,7 @@ const ReplicaSet ConnType = "ReplicaSet"
 // Sharded - Sharded database
 const Sharded ConnType = "Sharded"
 
-//ConnOpts - options for connecting to a mongodb instance
+// ConnOpts - options for connecting to a mongodb instance
 type ConnOpts struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
@@ -38,7 +38,7 @@ func (co *ConnOpts) toUri() string {
 	return fmt.Sprintf("mongodb://%s:%d/%s", co.Host, co.Port, co.DbName)
 }
 
-//store - holds mongodb connection handle and information
+// store - holds mongodb connection handle and information
 type store struct {
 	client *mongo.Client
 	dbName string
