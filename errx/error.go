@@ -8,6 +8,7 @@ import (
 
 type Error struct {
 	Err  error  `json:"err"`
+	Code string `json:"code"`
 	Msg  string `json:"msg"`
 	File string `json:"file"`
 	Line int    `json:"line"`
@@ -33,22 +34,50 @@ func (ex *Error) String() string {
 
 func Errf(inner error, msg string, args ...interface{}) *Error {
 	_, file, line, _ := runtime.Caller(1)
-
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
-	return &Error{Err: inner, Msg: msg, File: file, Line: line}
+	return &Error{
+		Err:  inner,
+		Code: inner.Error(),
+		Msg:  msg,
+		File: file,
+		Line: line,
+	}
+}
+
+func Errfx(inner error, code, msg string, args ...interface{}) *Error {
+	_, file, line, _ := runtime.Caller(1)
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	return &Error{
+		Err:  inner,
+		Code: code,
+		Msg:  msg,
+		File: file,
+		Line: line,
+	}
 }
 
 func New(code, msg string) *Error {
 	_, file, line, _ := runtime.Caller(1)
-	return &Error{Err: errors.New(code), Msg: msg, File: file, Line: line}
+	return &Error{
+		Err:  errors.New(code),
+		Code: code,
+		Msg:  msg,
+		File: file,
+		Line: line,
+	}
 }
 
 func Str(err error) string {
 	ex, ok := err.(*Error)
 	if !ok {
 		return err.Error()
+	}
+	if ex.Code != ex.Err.Error() {
+
 	}
 	return fmt.Sprintf("%s:%d - %s", ex.File, ex.Line, ex.Msg)
 }

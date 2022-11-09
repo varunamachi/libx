@@ -2,11 +2,13 @@ package httpx
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
+	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/rt"
 )
@@ -182,4 +184,63 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 			return err
 		}
 	}
+}
+
+func errorHandlerFunc(err error, etx echo.Context) {
+	asJson := func(status int, code, msg string) {
+		hm := data.M{
+			"status":    http.StatusText(status),
+			"errorCode": code,
+			"msg":       msg,
+		}
+		if err := etx.JSON(status, hm); err != nil {
+			log.Error().Err(err).Msg("failed to send error to client")
+		}
+	}
+
+	printIfInternal := func(status int, err error) bool {
+		irr, ok := err.(*errx.Error)
+		if !ok {
+			return false
+		}
+		log.Error().
+			Int("statusCode", status).
+			Str("file", irr.File).
+			Int("line", irr.Line).
+			Str("user", GetUserId(etx)).
+			Str("method", etx.Request().Method).
+			Str("path", etx.Request().URL.Path).
+			Msg(irr.Msg)
+		errx.PrintSomeStack(irr)
+		asJson(status, irr.Code, irr.Msg)
+		return true
+	}
+
+	if printIfInternal(http.StatusInternalServerError, err) {
+		return
+	}
+
+	httpErr, ok := err.(*echo.HTTPError)
+	if ok && printIfInternal(httpErr.Code, httpErr.Internal) {
+		return
+	}
+	if ok {
+		msg := StrMsg(httpErr)
+		log.Error().
+			Int("statusCode", httpErr.Code).
+			Str("user", GetUserId(etx)).
+			Str("method", etx.Request().Method).
+			Str("path", etx.Request().URL.Path).
+			Msg(msg)
+		asJson(httpErr.Code, strconv.Itoa(httpErr.Code), msg)
+		return
+	}
+
+	log.Error().
+		Int("statusCode", http.StatusInternalServerError).
+		Str("user", GetUserId(etx)).
+		Str("method", etx.Request().Method).
+		Str("path", etx.Request().URL.Path).
+		Msg(err.Error())
+	asJson(http.StatusInternalServerError, "500", err.Error())
 }

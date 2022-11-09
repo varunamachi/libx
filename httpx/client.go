@@ -27,9 +27,8 @@ var (
 	ErrInternalServerError = errors.New("client.http.internalServerError")
 	ErrBadRequest          = errors.New("client.http.badRequest")
 	ErrOtherStatus         = errors.New("client.http.otherStatus")
-
-	ErrInvalidResponse = errors.New("client.http.invalidResponse")
-	ErrClientError     = errors.New("client.http.clientError")
+	ErrInvalidResponse     = errors.New("client.http.invalidResponse")
+	ErrClientError         = errors.New("client.http.clientError")
 )
 
 type AuthData map[string]interface{}
