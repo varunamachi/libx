@@ -186,6 +186,32 @@ func getAccessMiddleware() echo.MiddlewareFunc {
 	}
 }
 
+func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(etx echo.Context) error {
+			err := next(etx)
+			if err == nil {
+				log.Info().
+					Int("statusCode", etx.Response().Status).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg("-- OK --")
+				return nil
+			}
+			if err != nil && printErrors {
+				log.Error().
+					Int("statusCode", http.StatusInternalServerError).
+					Str("user", GetUserId(etx)).
+					Str("method", etx.Request().Method).
+					Str("path", etx.Request().URL.Path).
+					Msg(err.Error())
+			}
+			return nil
+		}
+	}
+}
+
 func errorHandlerFunc(err error, etx echo.Context) {
 	asJson := func(status int, code, msg string) {
 		hm := data.M{
