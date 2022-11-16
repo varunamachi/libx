@@ -22,18 +22,20 @@ type ConnOpts struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	DBName   string `json:"dbName"`
+	TimeZone string `json:"timeZone"`
 }
 
 //String - get usable connection string
 func (c *ConnOpts) String() string {
 	return fmt.Sprintf(
 		// postgres://username:password@url.com:5432/dbName
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable&timezone=%s",
 		c.User,
 		c.Password,
 		c.Host,
 		c.Port,
 		c.DBName,
+		c.TimeZone,
 	)
 }
 
@@ -41,12 +43,13 @@ func (c *ConnOpts) String() string {
 func (c *ConnOpts) Url() (*url.URL, error) {
 	urlStr := fmt.Sprintf(
 		// postgres://username:password@url.com:5432/dbName
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable&timezone=%s",
 		c.User,
 		c.Password,
 		c.Host,
 		c.Port,
 		c.DBName,
+		c.TimeZone,
 	)
 	return url.Parse(urlStr)
 }

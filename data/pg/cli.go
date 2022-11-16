@@ -51,6 +51,14 @@ func Wrap(cmd *cli.Command) *cli.Command {
 			EnvVars:  []string{"PG_PASS"},
 			Required: false,
 		},
+		// TODO - use this value in opts
+		&cli.StringFlag{
+			Name:     "pg-timezone",
+			Value:    "GMT+5:30",
+			Usage:    "Postgres client time zone",
+			EnvVars:  []string{"PG_TIMEZONE"},
+			Required: false,
+		},
 	)
 
 	if cmd.Before == nil {
@@ -77,6 +85,12 @@ func requirePostgres(ctx *cli.Context) error {
 			return errx.Errf(err, "invalid URL '%s' given")
 		}
 
+		if !u.Query().Has("timezone") {
+			// TODO - use system timezone by default, here I am hardcoding
+			// for Asia/Kolkata
+			u.Query().Add("timezone", "GMT+5:30")
+		}
+
 		db, err := Connect(ctx.Context, u)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
@@ -90,6 +104,7 @@ func requirePostgres(ctx *cli.Context) error {
 			User:     ctx.String("pg-user"),
 			DBName:   ctx.String("pg-db"),
 			Password: ctx.String("pg-pass"),
+			TimeZone: ctx.String("pg-timezone"),
 		})
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
