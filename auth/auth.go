@@ -11,6 +11,11 @@ import (
 	"github.com/varunamachi/libx/errx"
 )
 
+const (
+	UserSessionTimeout = time.Hour * 24 * 10 // 10 days
+	// UserSessionTimeout = time.Minute // 10 days
+)
+
 type AuthData map[string]interface{}
 
 var (
@@ -52,8 +57,7 @@ func Login(
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["userId"] = user.Id()
-	claims["exp"] = time.Now().Add(time.Hour * 24 * 10).Unix()
-	// claims["exp"] = time.Now().Add(time.Minute).Unix()
+	claims["exp"] = time.Now().Add(UserSessionTimeout).Unix()
 	claims["type"] = "user"
 
 	signed, err := token.SignedString(GetJWTKey())
