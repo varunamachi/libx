@@ -13,7 +13,7 @@ import (
 
 const (
 	UserSessionTimeout = time.Hour * 24 * 10 // 10 days
-	// UserSessionTimeout = time.Minute // 10 days
+	// UserSessionTimeout = time.Minute // 1 minute - for testing
 )
 
 type AuthData map[string]interface{}
