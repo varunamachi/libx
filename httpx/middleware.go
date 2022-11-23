@@ -10,7 +10,6 @@ import (
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
-	"github.com/varunamachi/libx/rt"
 )
 
 const (
@@ -116,75 +115,75 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 	}
 }
 
-func getAccessMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(etx echo.Context) error {
-			err := next(etx)
-			if err == nil {
-				log.Info().
-					Int("statusCode", etx.Response().Status).
-					Str("user", GetUserId(etx)).
-					Str("method", etx.Request().Method).
-					Str("path", etx.Request().URL.Path).
-					Msg("-- OK --")
-				return nil
-			}
-			printIfInternal := func(status int, err error) bool {
-				irr, ok := err.(*errx.Error)
-				if !ok {
-					return false
-				}
-				log.Error().
-					Int("statusCode", status).
-					Str("file", irr.File).
-					Int("line", irr.Line).
-					Str("user", GetUserId(etx)).
-					Str("method", etx.Request().Method).
-					Str("path", etx.Request().URL.Path).
-					Msg(irr.Msg)
-				errx.PrintSomeStack(irr)
-				return true
-			}
+// func getAccessMiddleware() echo.MiddlewareFunc {
+// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
+// 		return func(etx echo.Context) error {
+// 			err := next(etx)
+// 			if err == nil {
+// 				log.Info().
+// 					Int("statusCode", etx.Response().Status).
+// 					Str("user", GetUserId(etx)).
+// 					Str("method", etx.Request().Method).
+// 					Str("path", etx.Request().URL.Path).
+// 					Msg("-- OK --")
+// 				return nil
+// 			}
+// 			printIfInternal := func(status int, err error) bool {
+// 				irr, ok := err.(*errx.Error)
+// 				if !ok {
+// 					return false
+// 				}
+// 				log.Error().
+// 					Int("statusCode", status).
+// 					Str("file", irr.File).
+// 					Int("line", irr.Line).
+// 					Str("user", GetUserId(etx)).
+// 					Str("method", etx.Request().Method).
+// 					Str("path", etx.Request().URL.Path).
+// 					Msg(irr.Msg)
+// 				errx.PrintSomeStack(irr)
+// 				return true
+// 			}
 
-			if err == nil && rt.EnvBool(EnvPrintAllAccess, false) {
-				status := etx.Response().Status
-				log.Debug().
-					Int("statusCode", status).
-					Str("user", GetUserId(etx)).
-					Str("method", etx.Request().Method).
-					Str("path", etx.Request().URL.Path).
-					Msg(http.StatusText(status))
-				return nil
-			}
+// 			if err == nil && rt.EnvBool(EnvPrintAllAccess, false) {
+// 				status := etx.Response().Status
+// 				log.Debug().
+// 					Int("statusCode", status).
+// 					Str("user", GetUserId(etx)).
+// 					Str("method", etx.Request().Method).
+// 					Str("path", etx.Request().URL.Path).
+// 					Msg(http.StatusText(status))
+// 				return nil
+// 			}
 
-			if printIfInternal(http.StatusInternalServerError, err) {
-				return err
-			}
+// 			if printIfInternal(http.StatusInternalServerError, err) {
+// 				return err
+// 			}
 
-			httpErr, ok := err.(*echo.HTTPError)
-			if ok && printIfInternal(httpErr.Code, httpErr.Internal) {
-				return err
-			}
-			if ok {
-				log.Error().
-					Int("statusCode", httpErr.Code).
-					Str("user", GetUserId(etx)).
-					Str("method", etx.Request().Method).
-					Str("path", etx.Request().URL.Path).
-					Msg(StrMsg(httpErr))
-				return httpErr
-			}
+// 			httpErr, ok := err.(*echo.HTTPError)
+// 			if ok && printIfInternal(httpErr.Code, httpErr.Internal) {
+// 				return err
+// 			}
+// 			if ok {
+// 				log.Error().
+// 					Int("statusCode", httpErr.Code).
+// 					Str("user", GetUserId(etx)).
+// 					Str("method", etx.Request().Method).
+// 					Str("path", etx.Request().URL.Path).
+// 					Msg(StrMsg(httpErr))
+// 				return httpErr
+// 			}
 
-			log.Error().
-				Int("statusCode", http.StatusInternalServerError).
-				Str("user", GetUserId(etx)).
-				Str("method", etx.Request().Method).
-				Str("path", etx.Request().URL.Path).
-				Msg(err.Error())
-			return err
-		}
-	}
-}
+// 			log.Error().
+// 				Int("statusCode", http.StatusInternalServerError).
+// 				Str("user", GetUserId(etx)).
+// 				Str("method", etx.Request().Method).
+// 				Str("path", etx.Request().URL.Path).
+// 				Msg(err.Error())
+// 			return err
+// 		}
+// 	}
+// }
 
 func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -199,7 +198,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 					Msg("-- OK --")
 				return nil
 			}
-			if err != nil && printErrors {
+			if printErrors {
 				log.Error().
 					Int("statusCode", http.StatusInternalServerError).
 					Str("user", GetUserId(etx)).
@@ -207,7 +206,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 					Str("path", etx.Request().URL.Path).
 					Msg(err.Error())
 			}
-			return nil
+			return err
 		}
 	}
 }

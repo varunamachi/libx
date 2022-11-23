@@ -76,9 +76,10 @@ func (s *Server) Start(port uint32) error {
 }
 
 func (s *Server) configure() {
-
+	s.echo.HTTPErrorHandler = errorHandlerFunc
 	s.echo.HideBanner = true
-	s.echo.Use(getAccessMiddleware())
+	// s.echo.Use(getAccessMiddleware())
+	s.echo.Use(accessMiddleware(false))
 	groups := map[string]*echo.Group{}
 
 	for _, ep := range s.apiEps {
