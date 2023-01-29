@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/errx"
 )
 
@@ -118,4 +119,32 @@ func SplitPath(path string) (dirPath, fileBaseName, ext string) {
 	fileBaseName = strings.TrimSuffix(fileName, ext)
 
 	return
+}
+
+//ExistsAsFile - checks if a regular file exists at given path. If a error
+//occurs while stating whatever exists at given location, false is returned
+func ExistsAsFile(path string) (yes bool) {
+	stat, err := os.Stat(path)
+	if err == nil && !stat.IsDir() {
+		yes = true
+	}
+	return yes
+}
+
+//ExistsAsDir - checks if a directory exists at given path. If a error
+//occurs while stating whatever exists at given location, false is returned
+func ExistsAsDir(path string) (yes bool) {
+	stat, err := os.Stat(path)
+	if err == nil && stat.IsDir() {
+		yes = true
+	}
+	return yes
+}
+
+func MustGetUserHome() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get user home")
+	}
+	return home
 }

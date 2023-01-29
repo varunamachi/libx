@@ -6,12 +6,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strings"
-	"syscall"
 
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/errx"
-	"golang.org/x/term"
 )
 
 //PrintJSON - dumps JSON representation of given data to stdout
@@ -82,34 +79,6 @@ func LoadJson(reader io.Reader, out interface{}) error {
 	return nil
 }
 
-//ExistsAsFile - checks if a regular file exists at given path. If a error
-//occurs while stating whatever exists at given location, false is returned
-func ExistsAsFile(path string) (yes bool) {
-	stat, err := os.Stat(path)
-	if err == nil && !stat.IsDir() {
-		yes = true
-	}
-	return yes
-}
-
-//ExistsAsDir - checks if a directory exists at given path. If a error
-//occurs while stating whatever exists at given location, false is returned
-func ExistsAsDir(path string) (yes bool) {
-	stat, err := os.Stat(path)
-	if err == nil && stat.IsDir() {
-		yes = true
-	}
-	return yes
-}
-
-func MustGetUserHome() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get user home")
-	}
-	return home
-}
-
 //FormattedJSON - converts given data to JSON and returns as pretty printed
 func FormattedJSON(o interface{}) (string, error) {
 	b, err := json.MarshalIndent(o, "", "    ")
@@ -117,27 +86,4 @@ func FormattedJSON(o interface{}) (string, error) {
 		return "", errx.Errf(err, "failed to generate formatted JSON")
 	}
 	return string(b), nil
-}
-
-//askSecret - asks password from user, does not echo charectors
-func askSecret() (string, error) {
-	pbyte, err := term.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		return "", err
-	}
-	secret := string(pbyte)
-	fmt.Println()
-	return secret, nil
-}
-
-//AskPassword - asks password, prints the given name before asking
-func AskPassword(name string) string {
-	fmt.Print(name + ": ")
-	secret, _ := askSecret()
-	return strings.TrimSpace(secret)
-}
-
-func AskDangerous(question string, def bool) bool {
-	uir := NewUserInputReader(os.Stdin, os.Stdout)
-	return uir.BoolOr(question, def)
 }
