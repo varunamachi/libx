@@ -10,6 +10,7 @@ import (
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/rt"
 )
 
 const (
@@ -186,10 +187,11 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 // }
 
 func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
+	logAll := rt.EnvBool(EnvPrintAllAccess, false)
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(etx echo.Context) error {
 			err := next(etx)
-			if err == nil {
+			if logAll && err == nil {
 				log.Info().
 					Int("statusCode", etx.Response().Status).
 					Str("user", GetUserId(etx)).

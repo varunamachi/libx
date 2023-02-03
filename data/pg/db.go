@@ -53,7 +53,8 @@ func (c *ConnOpts) Url() (*url.URL, error) {
 }
 
 //connect - connects to DB based on connection string or URL
-func Connect(gtx context.Context, url *url.URL, timeZone string) (*sqlx.DB, error) {
+func Connect(
+	gtx context.Context, url *url.URL, timeZone string) (*sqlx.DB, error) {
 	if err := netx.WaitForPorts(gtx, url.Host, 60*time.Second); err != nil {
 		return nil, err
 	}
