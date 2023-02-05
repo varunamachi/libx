@@ -1,5 +1,9 @@
 package data
 
+import (
+	"golang.org/x/exp/constraints"
+)
+
 // Qop - equivalent to ternary operator in other languages
 func Qop[T any](cond bool, onTrue T, onFalse T) T {
 	if cond {
@@ -23,4 +27,36 @@ func OneOf[T comparable](tgt T, opts ...T) bool {
 		}
 	}
 	return false
+}
+
+func Min[T constraints.Ordered](in ...T) T {
+	var out T
+	if len(in) == 0 {
+		return out
+	}
+
+	out = in[0]
+	for _, val := range in {
+		if val < out {
+			out = val
+		}
+	}
+
+	return out
+}
+
+func Max[T constraints.Ordered](in ...T) T {
+	var out T
+	if len(in) == 0 {
+		return out
+	}
+
+	out = in[0]
+	for _, val := range in {
+		if val > out {
+			out = val
+		}
+	}
+
+	return out
 }

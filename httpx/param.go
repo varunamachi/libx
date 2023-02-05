@@ -290,6 +290,11 @@ func MustGetUser(etx echo.Context) *auth.User {
 }
 
 func GetUserId(etx echo.Context) string {
+	ido := etx.Get("userId")
+	if id, ok := ido.(string); ok {
+		return id
+	}
+
 	obj := etx.Get("user")
 	user, ok := obj.(auth.User)
 	if !ok {
