@@ -146,7 +146,7 @@ func (s *Server) Print() {
 		fmt.Fprintln(s.printer, caser.String(cat))
 		for _, ep := range eps {
 			fmt.Fprintf(s.printer,
-				"    |--  %-3s %-5s %-40s %s\n",
+				" |-- %-3s %-5s %-60s %s\n",
 				ep.Version, ep.Route.Method, ep.Route.Path, ep.Desc)
 		}
 		fmt.Fprintln(s.printer)
@@ -159,7 +159,7 @@ func (s *Server) Print() {
 		}
 
 		fmt.Fprintf(s.printer,
-			"%-3s %-5s %-40s %-15s %s\n",
+			" |-- %-3s %-5s %-60s %-15s %s\n",
 			ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
 	}
 	fmt.Fprintln(s.printer, "")
