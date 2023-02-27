@@ -71,12 +71,27 @@ func Connect(
 	if timeZone != "" {
 		_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s'", timeZone))
 		if err != nil {
-			// log.Error().Err(err).Msg("failed to set postgres timezone")
 			return nil, errx.Errf(err, "failed to set postgres timezone")
 		}
 	}
+	var dbNow time.Time
+	if err := db.Get(&dbNow, "SELECT now()"); err != nil {
+		return nil, errx.Errf(err, "failed get current time")
 
+	}
+	log.Info().Str("DB.CurrentTime", dbNow.Format(time.UnixDate)).Msg("")
 	return db, nil
+}
+
+func PrintDbTime() {
+	var dbNow time.Time
+	if err := Conn().Get(&dbNow, "SELECT now()"); err != nil {
+		err = errx.Errf(err, "failed get current time")
+		errx.PrintSomeStack(err)
+
+	}
+	log.Info().Str("DB.CurrentTime", dbNow.Format(time.UnixDate)).
+		Msg("")
 }
 
 // ConnectWithOpts - connect to postgresdb based on given options
@@ -91,16 +106,14 @@ func ConnectWithOpts(
 		return nil, errx.Errf(err, "failed to open postgress connection")
 	}
 
-	// if timeZone != "" {
-	// 	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s'", timeZone))
-	// 	if err != nil {
-	// 		// log.Error().Err(err).Msg("failed to set postgres timezone")
-	// 		return nil, errx.Errf(err, "failed to set postgres timezone")
-	// 	}
-	// }
+	var dbNow time.Time
+	if err := db.Get(&dbNow, "SELECT now()"); err != nil {
+		return nil, errx.Errf(err, "failed get current time")
+
+	}
+	log.Info().Str("DB.CurrentTime", dbNow.Format(time.UnixDate)).Msg("")
 
 	return db, nil
-
 }
 
 // NamedConn - gives connection to database associated with given name. If no
