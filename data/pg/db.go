@@ -15,7 +15,7 @@ import (
 var defDB *sqlx.DB
 var conns map[string]*sqlx.DB
 
-//ConnOpts - postgres connection options
+// ConnOpts - postgres connection options
 type ConnOpts struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
@@ -25,34 +25,38 @@ type ConnOpts struct {
 	TimeZone string `json:"timeZone"`
 }
 
-//String - get usable connection string
+// String - get usable connection string
 func (c *ConnOpts) String() string {
+	// postgres://username:password@url.com:5432/dbName
+	// "postgres://%s:%s@%s:%d/%s?sslmode=disable&TimeZone=%s",
 	return fmt.Sprintf(
-		// postgres://username:password@url.com:5432/dbName
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		c.User,
-		c.Password,
+		"host=%s port=%d user=%s password=%s dbname=%s "+
+			"sslmode=disable TimeZone=%s",
 		c.Host,
 		c.Port,
+		c.User,
+		c.Password,
 		c.DBName,
+		c.TimeZone,
 	)
 }
 
-//Url - get a postgres URL
+// Url - get a postgres URL
 func (c *ConnOpts) Url() (*url.URL, error) {
 	urlStr := fmt.Sprintf(
 		// postgres://username:password@url.com:5432/dbName
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable&TimeZone=%s",
 		c.User,
 		c.Password,
 		c.Host,
 		c.Port,
 		c.DBName,
+		c.TimeZone,
 	)
 	return url.Parse(urlStr)
 }
 
-//connect - connects to DB based on connection string or URL
+// connect - connects to DB based on connection string or URL
 func Connect(
 	gtx context.Context, url *url.URL, timeZone string) (*sqlx.DB, error) {
 	if err := netx.WaitForPorts(gtx, url.Host, 60*time.Second); err != nil {
@@ -75,19 +79,33 @@ func Connect(
 	return db, nil
 }
 
-//ConnectWithOpts - connect to postgresdb based on given options
+// ConnectWithOpts - connect to postgresdb based on given options
 func ConnectWithOpts(
-	gtx context.Context, opts *ConnOpts) (db *sqlx.DB, err error) {
-	u, err := opts.Url()
-	if err != nil {
-		return nil, errx.Errf(err, "failed to create pg URL")
+	gtx context.Context, opts *ConnOpts) (*sqlx.DB, error) {
+	if err := netx.WaitForPorts(gtx, opts.Host, 60*time.Second); err != nil {
+		return nil, err
 	}
-	return Connect(gtx, u, opts.TimeZone)
+	db, err := sqlx.Open("postgres", opts.String())
+	if err != nil {
+		// log.Error().Err(err).Msg("failed to open postgress connection")
+		return nil, errx.Errf(err, "failed to open postgress connection")
+	}
+
+	// if timeZone != "" {
+	// 	_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s'", timeZone))
+	// 	if err != nil {
+	// 		// log.Error().Err(err).Msg("failed to set postgres timezone")
+	// 		return nil, errx.Errf(err, "failed to set postgres timezone")
+	// 	}
+	// }
+
+	return db, nil
+
 }
 
-//NamedConn - gives connection to database associated with given name. If no
-//connection exists with given name nil is returned. If name is empty default
-//connection is returned
+// NamedConn - gives connection to database associated with given name. If no
+// connection exists with given name nil is returned. If name is empty default
+// connection is returned
 func NamedConn(name string) *sqlx.DB {
 	if name == "" {
 		return defDB
@@ -95,17 +113,17 @@ func NamedConn(name string) *sqlx.DB {
 	return conns[name]
 }
 
-//SetNamedConn - register a postgres connection against name
+// SetNamedConn - register a postgres connection against name
 func SetNamedConn(name string, db *sqlx.DB) {
 	conns[name] = db
 }
 
-//SetDefaultConn - sets the default postgres connection
+// SetDefaultConn - sets the default postgres connection
 func SetDefaultConn(db *sqlx.DB) {
 	defDB = db
 }
 
-//Conn - Gives default connection
+// Conn - Gives default connection
 func Conn() *sqlx.DB {
 	return defDB
 }
