@@ -30,8 +30,7 @@ func (c *ConnOpts) String() string {
 	// postgres://username:password@url.com:5432/dbName
 	// "postgres://%s:%s@%s:%d/%s?sslmode=disable&TimeZone=%s",
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s "+
-			"sslmode=disable TimeZone=%s",
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable TimeZone='%s'",
 		c.Host,
 		c.Port,
 		c.User,
@@ -45,7 +44,7 @@ func (c *ConnOpts) String() string {
 func (c *ConnOpts) Url() (*url.URL, error) {
 	urlStr := fmt.Sprintf(
 		// postgres://username:password@url.com:5432/dbName
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable&TimeZone=%s",
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable&timezon=%s",
 		c.User,
 		c.Password,
 		c.Host,
@@ -97,7 +96,8 @@ func PrintDbTime() {
 // ConnectWithOpts - connect to postgresdb based on given options
 func ConnectWithOpts(
 	gtx context.Context, opts *ConnOpts) (*sqlx.DB, error) {
-	if err := netx.WaitForPorts(gtx, opts.Host, 60*time.Second); err != nil {
+	hostPort := fmt.Sprintf("%s:%d", opts.Host, opts.Port)
+	if err := netx.WaitForPorts(gtx, hostPort, 60*time.Second); err != nil {
 		return nil, err
 	}
 	db, err := sqlx.Open("postgres", opts.String())
