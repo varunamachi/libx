@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 )
@@ -51,17 +52,25 @@ func getValues(
 	spec *data.FilterSpec,
 	sel Selector) ([]interface{}, error) {
 
-	// sq := squirrel.StatementBuilder.Select().Distinct()
-
-	query := "SELECT DISTINCT %s FROM %s"
-	if !sel.IsEmpty() {
-		query += " WHERE " + sel.QueryFragment
+	sq := squirrel.StatementBuilder.
+		Select("*").
+		Distinct().
+		From(dtype).
+		Where(sel.QueryFragment, sel.Args...)
+	query, args, err := sq.ToSql()
+	if err != nil {
+		return nil, errx.Errf(err, "failed to build sql query")
 	}
-	query += " ORDER BY %s"
-	query = fmt.Sprintf(query, spec.Field, dtype, spec.Field)
+
+	// query := "SELECT DISTINCT %s FROM %s"
+	// if !sel.IsEmpty() {
+	// 	query += " WHERE " + sel.QueryFragment
+	// }
+	// query += " ORDER BY %s"
+	// query = fmt.Sprintf(query, spec.Field, dtype, spec.Field)
 
 	out := make([]interface{}, 0, 100)
-	err := Conn().SelectContext(gtx, &out, query, sel.Args...)
+	err = Conn().SelectContext(gtx, &out, query, args...)
 	if err != nil {
 		return nil, errx.Errf(err,
 			"failed to get distinct values for '%s' in '%s'", spec.Field, dtype)
@@ -75,14 +84,27 @@ func getDateRangeExtremes(
 	spec *data.FilterSpec,
 	sel Selector) (*data.DateRange, error) {
 
-	query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
+	sq := squirrel.StatementBuilder.Select(
+		"min("+spec.Field+") as _from",
+		"max("+spec.Field+") as _to",
+	).From(dtype)
 	if !sel.IsEmpty() {
-		query += " WHERE " + sel.QueryFragment
+		sq.Where(sel.QueryFragment, sel.Args...)
 	}
+
+	query, args, err := sq.ToSql()
+	if err != nil {
+		return nil, errx.Errf(err, "failed to build sql query")
+	}
+
+	// query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
+	// if !sel.IsEmpty() {
+	// 	query += " WHERE " + sel.QueryFragment
+	// }
 
 	out := data.DateRange{}
 	query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
-	err := Conn().SelectContext(gtx, &out, query, sel.Args...)
+	err = Conn().SelectContext(gtx, &out, query, args)
 	if err != nil {
 		return nil, errx.Errf(err,
 			"failed to get date range for '%s' in '%s'", spec.Field, dtype)
@@ -95,14 +117,28 @@ func getRangeExtremes(
 	dtype string,
 	spec *data.FilterSpec,
 	sel Selector) (*data.NumberRange, error) {
-	query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
+
+	sq := squirrel.StatementBuilder.Select(
+		"min("+spec.Field+") as _from",
+		"max("+spec.Field+") as _to",
+	).From(dtype)
 	if !sel.IsEmpty() {
-		query += " WHERE " + sel.QueryFragment
+		sq.Where(sel.QueryFragment, sel.Args...)
 	}
+
+	query, args, err := sq.ToSql()
+	if err != nil {
+		return nil, errx.Errf(err, "failed to build sql query")
+	}
+
+	// query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
+	// if !sel.IsEmpty() {
+	// 	query += " WHERE " + sel.QueryFragment
+	// }
 
 	out := data.NumberRange{}
 	query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
-	err := Conn().SelectContext(gtx, &out, query, sel.Args...)
+	err = Conn().SelectContext(gtx, &out, query, args)
 	if err != nil {
 		return nil, errx.Errf(err,
 			"failed to get number range for '%s' in '%s'", spec.Field, dtype)

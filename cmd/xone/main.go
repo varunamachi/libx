@@ -7,9 +7,10 @@ import (
 )
 
 func main() {
+	a, b := "delete from abc", "ab"
 	sq := squirrel.StatementBuilder.
-		Select("a", "b").
-		Distinct().
+		Select(" min("+a+") as _from", "max("+b+") as _to").
+		// Distinct().
 		From("abc").
 		OrderBy("a DESC")
 

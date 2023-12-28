@@ -1,7 +1,6 @@
 package pg
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -38,27 +37,27 @@ func (buf *buffer) writeInt(val int64) *buffer {
 	return buf
 }
 
-func GenQueryX(
-	params *data.CommonParams,
-	fmtStr string,
-	fargs ...string) Selector {
-	selector := NewSelectorGenerator().SelectorX(params)
-	return NewSel(
-		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
-		selector.Args,
-	)
-}
+// func GenQueryX(
+// 	params *data.CommonParams,
+// 	fmtStr string,
+// 	fargs ...string) Selector {
+// 	selector := NewSelectorGenerator().SelectorX(params)
+// 	return NewSel(
+// 		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
+// 		selector.Args,
+// 	)
+// }
 
-func GenQuery(
-	filter *data.Filter,
-	fmtStr string,
-	fargs ...string) Selector {
-	selector := NewSelectorGenerator().Selector(filter)
-	return NewSel(
-		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
-		selector.Args,
-	)
-}
+// func GenQuery(
+// 	filter *data.Filter,
+// 	fmtStr string,
+// 	fargs ...string) Selector {
+// 	selector := NewSelectorGenerator().Selector(filter)
+// 	return NewSel(
+// 		fmt.Sprintf(fmtStr, fargs)+" WHERE "+selector.QueryFragment,
+// 		selector.Args,
+// 	)
+// }
 
 type SelectorGenerator struct {
 	// filter      *data.Filter
