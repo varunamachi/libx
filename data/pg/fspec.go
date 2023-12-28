@@ -51,6 +51,8 @@ func getValues(
 	spec *data.FilterSpec,
 	sel Selector) ([]interface{}, error) {
 
+	// sq := squirrel.StatementBuilder.Select().Distinct()
+
 	query := "SELECT DISTINCT %s FROM %s"
 	if !sel.IsEmpty() {
 		query += " WHERE " + sel.QueryFragment

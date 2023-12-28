@@ -49,31 +49,31 @@ func (v Vec[T]) AsSlice() []T {
 	return ([]T)(v)
 }
 
-//FilterType - Type of filter item
+// FilterType - Type of filter item
 type FilterType string
 
-//FtProp - filter for a value
+// FtProp - filter for a value
 const FtProp FilterType = "Prop"
 
-//FtArray - filter for an array
+// FtArray - filter for an array
 const FtArray FilterType = "Array"
 
-//DateRange - filter for date range
+// DateRange - filter for date range
 const FtDateRange FilterType = "DateRange"
 
-//FtNumRange - filter for real number range
+// FtNumRange - filter for real number range
 const FtNumRange FilterType = "NumRange"
 
-//FtBoolean - filter for boolean field
+// FtBoolean - filter for boolean field
 const FtBoolean FilterType = "Boolean"
 
-//FtSearch - filter for search text field
+// FtSearch - filter for search text field
 const FtSearch FilterType = "Search"
 
-//FtConstant - constant filter value
+// FtConstant - constant filter value
 const FtConstant FilterType = "Constant"
 
-//FilterSpec - filter specification
+// FilterSpec - filter specification
 type FilterSpec struct {
 	Field string     `json:"field" db:"field" bson:"field"`
 	Name  string     `json:"name" db:"name" bson:"name"`
@@ -83,17 +83,18 @@ type FilterSpec struct {
 //Matcher - matches the given fields. If multiple fileds are given the; the
 //joining condition is decided by the MatchStrategy given
 
-//PropMatcher - matches props
+// PropMatcher - matches props
 type PropMatcher []interface{}
 
-//FilterSpecList - alias for array of filter specs
+// FilterSpecList - alias for array of filter specs
 type FilterSpecList []*FilterSpec
 
-//FilterVal - values for filter along with the count
-// type FilterVal struct {
-// 	Name  string `json:"name" db:"name" bson:"name"`
-// 	Count int    `json:"count" db:"count" bson:"count"`
-// }
+// FilterVal - values for filter along with the count
+//
+//	type FilterVal struct {
+//		Name  string `json:"name" db:"name" bson:"name"`
+//		Count int    `json:"count" db:"count" bson:"count"`
+//	}
 type Matcher struct {
 	Invert bool          `json:"invert" db:"invert" bson:"invert"`
 	Fields []interface{} `json:"fields" db:"fields" bson:"fields"`
@@ -109,7 +110,7 @@ type RangeMatcher struct {
 	Invert bool `json:"invert" db:"invert" bson:"invert"`
 }
 
-//Filter - generic filter used to filter data in any mongodb collection
+// Filter - generic filter used to filter data in any mongodb collection
 type Filter struct {
 	Bools     map[string]interface{}       `json:"bools" db:"bools" bson:"bools"`
 	Props     map[string]*Matcher          `json:"props" db:"props" bson:"props"`
@@ -121,9 +122,9 @@ type Filter struct {
 }
 
 type FilterValues struct {
-	Values map[string][]interface{}
-	Dates  map[string]*DateRange
-	Ranges map[string]*NumberRange
+	Values map[string][]interface{} `json:"values" db:"values" bson:"values"`
+	Dates  map[string]*DateRange    `json:"dates" db:"dates" bson:"dates"`
+	Ranges map[string]*NumberRange  `json:"ranges" db:"ranges" bson:"ranges"`
 }
 
 func NewFilterValues() *FilterValues {
@@ -135,11 +136,11 @@ func NewFilterValues() *FilterValues {
 }
 
 type CommonParams struct {
-	Filter   *Filter
-	Page     int64
-	PageSize int64
-	Sort     string
-	SortDesc bool
+	Filter   *Filter `json:"filter" db:"filter" bson:"filter"`
+	Page     int64   `json:"page" db:"page" bson:"page"`
+	PageSize int64   `json:"pageSize" db:"page_size" bson:"pageSize"`
+	Sort     string  `json:"sort" db:"sort" json:"sort"`
+	SortDesc bool    `json:"sortDesc" db:"sort_desc" bson:"sortDesc"`
 }
 
 func (qp *CommonParams) Offset() int64 {
