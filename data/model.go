@@ -100,9 +100,23 @@ type Matcher struct {
 	Fields []interface{} `json:"fields" db:"fields" bson:"fields"`
 }
 
+func (m *Matcher) IsValid() bool {
+	for _, val := range m.Fields {
+		if val != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 type DateRangeMatcher struct {
 	DateRange
 	Invert bool `json:"invert" db:"invert" bson:"invert"`
+}
+
+func (dr *DateRangeMatcher) IsValid() bool {
+	return dr.DateRange.IsValid()
 }
 
 type RangeMatcher struct {
@@ -110,37 +124,16 @@ type RangeMatcher struct {
 	Invert bool `json:"invert" db:"invert" bson:"invert"`
 }
 
-// Filter - generic filter used to filter data in any mongodb collection
-type Filter struct {
-	Bools     map[string]interface{}       `json:"bools" db:"bools" bson:"bools"`
-	Props     map[string]*Matcher          `json:"props" db:"props" bson:"props"`
-	Lists     map[string]*Matcher          `json:"lists" db:"lists" bson:"lists"`
-	Searches  map[string]*Matcher          `json:"searches" db:"searches" bson:"searches"`
-	Constants map[string]*Matcher          `json:"constants" db:"constants" bson:"constants"`
-	Dates     map[string]*DateRangeMatcher `json:"dates" db:"dates" bson:"dates"`
-	Ranges    map[string]*RangeMatcher     `json:"range" db:"range" bson:"range"`
-}
-
-type FilterValues struct {
-	Values map[string][]interface{} `json:"values" db:"values" bson:"values"`
-	Dates  map[string]*DateRange    `json:"dates" db:"dates" bson:"dates"`
-	Ranges map[string]*NumberRange  `json:"ranges" db:"ranges" bson:"ranges"`
-}
-
-func NewFilterValues() *FilterValues {
-	return &FilterValues{
-		Values: make(map[string][]interface{}),
-		Dates:  make(map[string]*DateRange),
-		Ranges: make(map[string]*NumberRange),
-	}
+func (r *RangeMatcher) IsValid() bool {
+	return r.NumberRange.IsValid()
 }
 
 type CommonParams struct {
-	Filter   *Filter `json:"filter" db:"filter" bson:"filter"`
-	Page     int64   `json:"page" db:"page" bson:"page"`
-	PageSize int64   `json:"pageSize" db:"page_size" bson:"pageSize"`
-	Sort     string  `json:"sort" db:"sort" json:"sort"`
-	SortDesc bool    `json:"sortDesc" db:"sort_desc" bson:"sortDesc"`
+	Filter         *Filter `json:"filter" db:"filter" bson:"filter"`
+	Page           int64   `json:"page" db:"page" bson:"page"`
+	PageSize       int64   `json:"pageSize" db:"page_size" bson:"pageSize"`
+	Sort           string  `json:"sort" db:"sort" bson:"sort"`
+	SortDescending bool    `json:"sortDescending" db:"sort_desc" bson:"sortDescending"`
 }
 
 func (qp *CommonParams) Offset() int64 {
@@ -169,7 +162,7 @@ type Getter interface {
 		gtx context.Context,
 		dataType string,
 		keyField string,
-		keys []interface{},
+		key interface{},
 		dataOut interface{}) error
 
 	Get(

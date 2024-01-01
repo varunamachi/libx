@@ -26,11 +26,11 @@ func GetCommonParams(etx echo.Context) (*data.CommonParams, error) {
 		return nil, pmg.Error()
 	}
 	return &data.CommonParams{
-		Page:     page,
-		PageSize: pageSize,
-		Sort:     sort,
-		SortDesc: sortDesc,
-		Filter:   &filter,
+		Page:           page,
+		PageSize:       pageSize,
+		Sort:           sort,
+		SortDescending: sortDesc,
+		Filter:         &filter,
 	}, nil
 }
 
