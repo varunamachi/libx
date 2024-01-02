@@ -5,8 +5,8 @@ import "time"
 type FkUser struct {
 	Id        int       `db:"id" fake:"skip"`
 	Name      string    `db:"name" fake:"{name}"`
-	FirstName string    `db:"firstName" fake:"{firstname}"`
-	LastName  string    `db:"lastName" fake:"{lastname}"`
+	FirstName string    `db:"first_name" fake:"{firstname}"`
+	LastName  string    `db:"last_name" fake:"{lastname}"`
 	Email     string    `db:"email" fake:"{email}"`
 	Age       int       `db:"age" fake:"{number:1,100}"`
 	Tags      []string  `db:"tags" fakesize:"2"`

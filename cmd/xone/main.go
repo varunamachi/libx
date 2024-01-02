@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/zerolog/log"
+	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/data/pg"
+	"github.com/varunamachi/libx/rt"
+	"github.com/varunamachi/libx/testutils/fake"
 )
 
 // var test2 = pg.NewSelectorGenerator().SelectorX(&data.CommonParams{
@@ -93,7 +97,18 @@ import (
 // })
 
 func main() {
+	gtx, cancel := rt.Gtx()
+	defer cancel()
 
+	app := cli.NewApp()
+	app.Commands = append(app.Commands, fake.FillCmd())
+
+	if err := app.RunContext(gtx, os.Args); err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+}
+
+func queryGen() {
 	sel := pg.NewSelectorGenerator().SelectorX(&data.CommonParams{
 		Filter: &data.Filter{
 			Bools: map[string]any{
