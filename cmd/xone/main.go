@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/data/pg"
+	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/rt"
 	"github.com/varunamachi/libx/testutils/fake"
 )
@@ -104,6 +105,7 @@ func main() {
 	app.Commands = append(app.Commands, fake.FillCmd())
 
 	if err := app.RunContext(gtx, os.Args); err != nil {
+		errx.PrintSomeStack(err)
 		log.Fatal().Err(err).Msg("")
 	}
 }

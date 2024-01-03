@@ -2,6 +2,7 @@ package fake
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/brianvoe/gofakeit/v6"
@@ -20,8 +21,8 @@ CREATE TABLE IF NOT EXISTS fake_user (
 	age					INT NOT NULL,
 	tags				VARCHAR[] DEFAULT '{}',
 	status				VARCHAR(20) DEFAULT 'inactive',
-	created				TIMESTAMPZ NOT NULL,
-	updated				TIMESTAMPZ NOT NULL
+	created				TIMESTAMPTZ NOT NULL,
+	updated				TIMESTAMPTZ NOT NULL
 )
 `
 
@@ -30,8 +31,8 @@ CREATE TABLE IF NOT EXISTS fake_user (
 	id					INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 	name				VARCHAR(60) NOT NULL,					
 	description			VARCHAR(120) NOT NULL,		
-	created				TIMESTAMPZ NOT NULL,
-	updated				TIMESTAMPZ NOT NULL
+	created				TIMESTAMPTZ NOT NULL,
+	updated				TIMESTAMPTZ NOT NULL
 )
 `
 
@@ -115,10 +116,10 @@ func fillUserInfo(gtx context.Context) error {
 			fakeUser.Created,
 			fakeUser.Updated,
 		)
-
 	}
 
 	query, args, err := inserter.ToSql()
+	fmt.Println(query)
 	if err != nil {
 		return errx.Errf(err, "failed to create fake user insert query")
 	}

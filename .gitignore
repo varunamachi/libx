@@ -15,3 +15,5 @@
 # vendor/
 
 *.p.sh
+.vscode/launch.json
+

@@ -1,0 +1,18 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:alpine
+    hostname: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fake_data
+    ports:
+      - "127.0.0.1:5432:5432"
+      # TZ: "Asia/Kolkata"
+      # PGTZ: "Asia/Kolkata"
+    # volumes:
+    #   - ${MK_DATA_DIR}/postgres:/var/lib/postgresql/data
+    #   - ${MK_DATA_DIR}/backup:/backup
+volumes:
+  postgres-data:
