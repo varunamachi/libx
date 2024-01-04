@@ -2,10 +2,10 @@ package fake
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/data/pg"
 	"github.com/varunamachi/libx/errx"
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS fake_user (
 `
 
 const fakeItemSchema = `
-CREATE TABLE IF NOT EXISTS fake_user (
+CREATE TABLE IF NOT EXISTS fake_item (
 	id					INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 	name				VARCHAR(60) NOT NULL,					
 	description			VARCHAR(120) NOT NULL,		
@@ -52,14 +52,22 @@ func PgCreateFill(gtx context.Context) error {
 	if err := createSchema(gtx); err != nil {
 		return err
 	}
+	log.Info().Msg("schema created successfully")
+
+	if err := clearData(gtx); err != nil {
+		return err
+	}
+	log.Info().Msg("data cleared from all tables")
 
 	if err := fillUserInfo(gtx); err != nil {
 		return err
 	}
+	log.Info().Msg("fake user information created")
 
 	if err := fillItemInfo(gtx); err != nil {
 		return err
 	}
+	log.Info().Msg("fake item data created")
 
 	return nil
 }
@@ -74,91 +82,131 @@ func createSchema(gtx context.Context) error {
 	return nil
 }
 
+func clearData(gtx context.Context) error {
+	_, err := pg.Conn().ExecContext(gtx, "DELETE FROM fake_user")
+	if err != nil {
+		return errx.Errf(err, "failed to delete data from fake_users table")
+	}
+
+	_, err = pg.Conn().ExecContext(gtx, "DELETE FROM fake_item")
+	if err != nil {
+		return errx.Errf(err, "failed to delete data from fake_item table")
+	}
+
+	return nil
+
+}
+
 func fillUserInfo(gtx context.Context) error {
 
-	// tx, err := pg.Conn().Begin()
-	// if err != nil {
-	// 	return errx.Errf(err, "failed to create DB transaction")
-	// }
+	tx, err := pg.Conn().BeginTxx(gtx, nil)
+	if err != nil {
+		return errx.Errf(err, "failed to create DB transaction")
+	}
 
-	// ef := func(err error, fmtStr string, args ...any) error {
-	// 	if e := tx.Rollback(); e != nil {
-	// 		log.Error().Err(err).
-	// 			Msg("transaction rollback failed for fake users table")
-	// 	}
-	// 	return errx.Errf(err, fmtStr, args...)
-	// }
+	ef := func(err error, fmtStr string, args ...any) error {
+		if e := tx.Rollback(); e != nil {
+			log.Error().Err(err).
+				Msg("transaction rollback failed for fake users table")
+		}
+		return errx.Errf(err, fmtStr, args...)
+	}
 
-	inserter := squirrel.StatementBuilder.Insert("fake_user").Columns(
-		"name",
-		"first_name",
-		"last_name",
-		"email",
-		"age",
-		"tags",
-		"status",
-		"created",
-		"updated",
-	)
 	var fakeUser FkUser
 	for i := 0; i < 5000; i++ {
 		if err := faker.Struct(&fakeUser); err != nil {
 			return errx.Errf(err, "failed to create a fake user struct")
 		}
-		inserter.Values(
-			fakeUser.Name,
-			fakeUser.FirstName,
-			fakeUser.LastName,
-			fakeUser.Email,
-			fakeUser.Age,
-			fakeUser.Tags,
-			fakeUser.Status,
-			fakeUser.Created,
-			fakeUser.Updated,
-		)
+
+		inserter := squirrel.StatementBuilder.
+			PlaceholderFormat(squirrel.Dollar).
+			Insert("fake_user").
+			Columns(
+				"name",
+				"first_name",
+				"last_name",
+				"email",
+				"age",
+				"tags",
+				"status",
+				"created",
+				"updated",
+			).
+			Values(
+				fakeUser.Name,
+				fakeUser.FirstName,
+				fakeUser.LastName,
+				fakeUser.Email,
+				fakeUser.Age,
+				fakeUser.Tags,
+				fakeUser.Status,
+				fakeUser.Created,
+				fakeUser.Updated,
+			)
+		query, args, err := inserter.ToSql()
+		if err != nil {
+			return ef(err, "failed to create fake user insert query")
+		}
+
+		if _, err = tx.ExecContext(gtx, query, args...); err != nil {
+			return ef(err, "failed to execute fake user insert query")
+		}
 	}
 
-	query, args, err := inserter.ToSql()
-	fmt.Println(query)
-	if err != nil {
-		return errx.Errf(err, "failed to create fake user insert query")
-	}
-
-	if _, err = pg.Conn().ExecContext(gtx, query, args...); err != nil {
-		return errx.Errf(err, "failed to execute fake user insert query")
+	if err := tx.Commit(); err != nil {
+		return errx.Errf(err, "failed to commit fake-user-add tx")
 	}
 
 	return nil
 }
 
 func fillItemInfo(gtx context.Context) error {
-	inserter := squirrel.StatementBuilder.Insert("fake_user").Columns(
-		"name",
-		"description",
-		"created",
-		"updated",
-	)
+
+	tx, err := pg.Conn().BeginTxx(gtx, nil)
+	if err != nil {
+		return errx.Errf(err, "failed to create DB transaction")
+	}
+
+	ef := func(err error, fmtStr string, args ...any) error {
+		if e := tx.Rollback(); e != nil {
+			log.Error().Err(err).
+				Msg("transaction rollback failed for fake users table")
+		}
+		return errx.Errf(err, fmtStr, args...)
+	}
+
 	var fakeItem FkItem
 	for i := 0; i < 5000; i++ {
 		if err := faker.Struct(&fakeItem); err != nil {
-			return errx.Errf(err, "failed to create a fake item struct")
+			return ef(err, "failed to create a fake item struct")
 		}
-		inserter.Values(
-			fakeItem.Name,
-			fakeItem.Description,
-			fakeItem.Created,
-			fakeItem.Updated,
-		)
 
+		query, args, err := squirrel.
+			StatementBuilder.
+			PlaceholderFormat(squirrel.Dollar).
+			Insert("fake_item").
+			Columns(
+				"name",
+				"description",
+				"created",
+				"updated",
+			).
+			Values(
+				fakeItem.Name,
+				fakeItem.Description,
+				fakeItem.Created,
+				fakeItem.Updated,
+			).ToSql()
+		if err != nil {
+			return ef(err, "failed to create fake item insert query")
+		}
+		if _, err = tx.ExecContext(gtx, query, args...); err != nil {
+			return ef(err, "failed to execute fake item insert query")
+		}
 	}
 
-	query, args, err := inserter.ToSql()
-	if err != nil {
-		return errx.Errf(err, "failed to create fake item insert query")
-	}
-
-	if _, err = pg.Conn().ExecContext(gtx, query, args...); err != nil {
-		return errx.Errf(err, "failed to execute fake item insert query")
+	if err := tx.Commit(); err != nil {
+		return errx.Errf(err, "failed to commit fake-item-add tx")
 	}
 
 	return nil

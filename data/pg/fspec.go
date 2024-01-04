@@ -12,7 +12,7 @@ import (
 func getFilterValues(
 	gtx context.Context,
 	dtype string,
-	specs data.FilterSpecList,
+	specs []*data.FilterSpec,
 	filter *data.Filter) (*data.FilterValues, error) {
 
 	fvals := data.NewFilterValues()

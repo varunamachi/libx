@@ -4,11 +4,12 @@ services:
     image: postgres:alpine
     hostname: postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fake_data
+      # POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: onetwothree
+      POSTGRES_DB: fake-data
     ports:
-      - "127.0.0.1:5432:5432"
+      # - "127.0.0.1:5432:5432"
+      - "5432:5432"
       # TZ: "Asia/Kolkata"
       # PGTZ: "Asia/Kolkata"
     # volumes:

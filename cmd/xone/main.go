@@ -7,7 +7,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/rs/zerolog/log"
-	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/data/pg"
 	"github.com/varunamachi/libx/errx"
@@ -101,7 +101,7 @@ func main() {
 	gtx, cancel := rt.Gtx()
 	defer cancel()
 
-	app := cli.NewApp()
+	app := libx.NewApp("xone", "test app", "0.0.1", "me")
 	app.Commands = append(app.Commands, fake.FillCmd())
 
 	if err := app.RunContext(gtx, os.Args); err != nil {

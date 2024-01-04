@@ -86,9 +86,6 @@ type FilterSpec struct {
 // PropMatcher - matches props
 type PropMatcher []interface{}
 
-// FilterSpecList - alias for array of filter specs
-type FilterSpecList []*FilterSpec
-
 // FilterVal - values for filter along with the count
 //
 //	type FilterVal struct {
@@ -174,7 +171,7 @@ type Getter interface {
 	FilterValues(
 		gtx context.Context,
 		dtype string,
-		specs FilterSpecList,
+		specs []*FilterSpec,
 		filter *Filter) (*FilterValues, error)
 }
 
