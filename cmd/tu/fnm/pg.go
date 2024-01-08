@@ -1,4 +1,4 @@
-package fake
+package fnm
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/rs/zerolog/log"
-	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/data/pg"
 	"github.com/varunamachi/libx/errx"
 )
@@ -37,16 +36,6 @@ CREATE TABLE IF NOT EXISTS fake_item (
 `
 
 var faker = gofakeit.New(39434)
-
-func FillCmd() *cli.Command {
-	return pg.Wrap(&cli.Command{
-		Name:        "fill-fake-data",
-		Description: "Create fake table and fill fake data",
-		Action: func(ctx *cli.Context) error {
-			return PgCreateFill(ctx.Context)
-		},
-	})
-}
 
 func PgCreateFill(gtx context.Context) error {
 	if err := createSchema(gtx); err != nil {

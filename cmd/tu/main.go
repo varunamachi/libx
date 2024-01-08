@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx"
-	"github.com/varunamachi/libx/cmd/tu/fake"
+	"github.com/varunamachi/libx/cmd/tu/fnm"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/rt"
 )
@@ -15,7 +15,7 @@ func main() {
 	defer cancel()
 
 	app := libx.NewApp("xone", "test app", "0.0.1", "me")
-	app.Commands = append(app.Commands, fake.FillCmd())
+	app.Commands = append(app.Commands, fnm.Commands()...)
 
 	if err := app.RunContext(gtx, os.Args); err != nil {
 		errx.PrintSomeStack(err)

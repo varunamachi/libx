@@ -153,5 +153,5 @@ func (pgd *PgGetterDeleter) FilterValues(
 	dtype string,
 	specs []*data.FilterSpec,
 	filter *data.Filter) (*data.FilterValues, error) {
-	return getFilterValues(gtx, dtype, specs, filter)
+	return GetFilterValues(gtx, dtype, specs, filter)
 }

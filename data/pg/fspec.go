@@ -9,7 +9,7 @@ import (
 	"github.com/varunamachi/libx/errx"
 )
 
-func getFilterValues(
+func GetFilterValues(
 	gtx context.Context,
 	dtype string,
 	specs []*data.FilterSpec,
@@ -43,7 +43,7 @@ func getFilterValues(
 		}
 	}
 
-	return nil, nil
+	return fvals, nil
 }
 
 func getValues(
@@ -53,11 +53,16 @@ func getValues(
 	sel Selector) ([]interface{}, error) {
 
 	sq := squirrel.StatementBuilder.
-		Select("*").
+		Select(spec.Field).
 		Distinct().
-		From(dtype).
-		Where(sel.QueryFragment, sel.Args...)
+		From(dtype)
+	if !sel.IsEmpty() {
+		sq.Where(sel.QueryFragment, sel.Args...)
+	}
 	query, args, err := sq.ToSql()
+
+	fmt.Println(query)
+	fmt.Println(args)
 	if err != nil {
 		return nil, errx.Errf(err, "failed to build sql query")
 	}
@@ -85,8 +90,8 @@ func getDateRangeExtremes(
 	sel Selector) (*data.DateRange, error) {
 
 	sq := squirrel.StatementBuilder.Select(
-		"min("+spec.Field+") as _from",
-		"max("+spec.Field+") as _to",
+		"min(\""+spec.Field+"\") AS _from",
+		"max(\""+spec.Field+"\") AS _to",
 	).From(dtype)
 	if !sel.IsEmpty() {
 		sq.Where(sel.QueryFragment, sel.Args...)
@@ -103,8 +108,8 @@ func getDateRangeExtremes(
 	// }
 
 	out := data.DateRange{}
-	query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
-	err = Conn().SelectContext(gtx, &out, query, args)
+	// query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
+	err = Conn().GetContext(gtx, &out, query, args...)
 	if err != nil {
 		return nil, errx.Errf(err,
 			"failed to get date range for '%s' in '%s'", spec.Field, dtype)
@@ -119,8 +124,8 @@ func getRangeExtremes(
 	sel Selector) (*data.NumberRange, error) {
 
 	sq := squirrel.StatementBuilder.Select(
-		"min("+spec.Field+") as _from",
-		"max("+spec.Field+") as _to",
+		"min(\""+spec.Field+"\") as _from",
+		"max(\""+spec.Field+"\") as _to",
 	).From(dtype)
 	if !sel.IsEmpty() {
 		sq.Where(sel.QueryFragment, sel.Args...)
@@ -138,7 +143,7 @@ func getRangeExtremes(
 
 	out := data.NumberRange{}
 	query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
-	err = Conn().SelectContext(gtx, &out, query, args)
+	err = Conn().GetContext(gtx, &out, query, args...)
 	if err != nil {
 		return nil, errx.Errf(err,
 			"failed to get number range for '%s' in '%s'", spec.Field, dtype)

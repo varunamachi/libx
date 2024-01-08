@@ -79,6 +79,10 @@ func (gen *SelectorGenerator) Reset() *SelectorGenerator {
 }
 
 func (gen *SelectorGenerator) Selector(filter *data.Filter) Selector {
+	if filter == nil {
+		return Selector{}
+	}
+
 	gen.Reset().
 		matchers(filter.Props).
 		bools(filter.Bools).
