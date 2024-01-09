@@ -32,7 +32,7 @@ var UserFilterSpec = []*data.FilterSpec{
 	{Field: "first_name", Name: "First Name", Type: data.FtProp},
 	{Field: "last_name", Name: "Last Name", Type: data.FtProp},
 	{Field: "email", Name: "Email", Type: data.FtProp},
-	{Field: "age", Name: "Age", Type: data.FtProp},
+	{Field: "age", Name: "Age", Type: data.FtNumRange},
 	{Field: "tags", Name: "Tags", Type: data.FtArray},
 	{Field: "status", Name: "Status", Type: data.FtProp},
 	{Field: "created", Name: "Created", Type: data.FtDateRange},

@@ -102,13 +102,7 @@ func getDateRangeExtremes(
 		return nil, errx.Errf(err, "failed to build sql query")
 	}
 
-	// query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
-	// if !sel.IsEmpty() {
-	// 	query += " WHERE " + sel.QueryFragment
-	// }
-
 	out := data.DateRange{}
-	// query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
 	err = Conn().GetContext(gtx, &out, query, args...)
 	if err != nil {
 		return nil, errx.Errf(err,
@@ -136,13 +130,7 @@ func getRangeExtremes(
 		return nil, errx.Errf(err, "failed to build sql query")
 	}
 
-	// query := `SELECT min(%s) as _from, max(%s) as _to FROM %s`
-	// if !sel.IsEmpty() {
-	// 	query += " WHERE " + sel.QueryFragment
-	// }
-
 	out := data.NumberRange{}
-	query = fmt.Sprintf(query, spec.Field, spec.Field, dtype)
 	err = Conn().GetContext(gtx, &out, query, args...)
 	if err != nil {
 		return nil, errx.Errf(err,

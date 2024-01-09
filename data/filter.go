@@ -15,6 +15,18 @@ type Filter struct {
 	Ranges    map[string]*RangeMatcher     `json:"range" db:"range" bson:"range"`
 }
 
+func NewFilter() *Filter {
+	return &Filter{
+		Bools:     map[string]any{},
+		Props:     map[string]*Matcher{},
+		Lists:     map[string]*Matcher{},
+		Searches:  map[string]*Matcher{},
+		Constants: map[string]*Matcher{},
+		Dates:     map[string]*DateRangeMatcher{},
+		Ranges:    map[string]*RangeMatcher{},
+	}
+}
+
 func IsValid[T Validatable](m map[string]T) bool {
 	if len(m) == 0 {
 		return false
