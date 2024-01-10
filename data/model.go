@@ -16,7 +16,7 @@ func (u M) Value() (driver.Value, error) {
 	return json.Marshal(u)
 }
 
-func (u *M) Scan(value interface{}) error {
+func (u *M) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -38,7 +38,7 @@ func (v Vec[T]) Value() (driver.Value, error) {
 	return pq.Array(v).Value()
 }
 
-func (v *Vec[T]) Scan(value interface{}) error {
+func (v *Vec[T]) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -84,7 +84,7 @@ type FilterSpec struct {
 //joining condition is decided by the MatchStrategy given
 
 // PropMatcher - matches props
-type PropMatcher []interface{}
+type PropMatcher []any
 
 // FilterVal - values for filter along with the count
 //
@@ -93,8 +93,8 @@ type PropMatcher []interface{}
 //		Count int    `json:"count" db:"count" bson:"count"`
 //	}
 type Matcher struct {
-	Invert bool          `json:"invert" db:"invert" bson:"invert"`
-	Fields []interface{} `json:"fields" db:"fields" bson:"fields"`
+	Invert bool  `json:"invert" db:"invert" bson:"invert"`
+	Fields []any `json:"fields" db:"fields" bson:"fields"`
 }
 
 func (m *Matcher) IsValid() bool {
@@ -146,7 +146,7 @@ type Deleter interface {
 		gtx context.Context,
 		dataType string,
 		keyField string,
-		keys ...interface{}) error
+		keys ...any) error
 }
 
 type Getter interface {
@@ -159,14 +159,14 @@ type Getter interface {
 		gtx context.Context,
 		dataType string,
 		keyField string,
-		key interface{},
-		dataOut interface{}) error
+		key any,
+		dataOut any) error
 
 	Get(
 		gtx context.Context,
 		dtype string,
 		params *CommonParams,
-		out interface{}) error
+		out any) error
 
 	FilterValues(
 		gtx context.Context,

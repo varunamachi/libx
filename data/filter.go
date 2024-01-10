@@ -41,7 +41,7 @@ func IsValid[T Validatable](m map[string]T) bool {
 	return false
 }
 
-func (f *Filter) IsValid(name string, val interface{}) bool {
+func (f *Filter) IsValid(name string, val any) bool {
 	if len(f.Bools) != 0 {
 		return true
 	}
@@ -64,9 +64,9 @@ func (f *Filter) IsValid(name string, val interface{}) bool {
 }
 
 type FilterValues struct {
-	Values map[string][]interface{} `json:"values" db:"values" bson:"values"`
-	Dates  map[string]*DateRange    `json:"dates" db:"dates" bson:"dates"`
-	Ranges map[string]*NumberRange  `json:"ranges" db:"ranges" bson:"ranges"`
+	Values map[string][]any        `json:"values" db:"values" bson:"values"`
+	Dates  map[string]*DateRange   `json:"dates" db:"dates" bson:"dates"`
+	Ranges map[string]*NumberRange `json:"ranges" db:"ranges" bson:"ranges"`
 }
 
 func NewFilterValues() *FilterValues {
