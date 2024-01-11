@@ -6,18 +6,44 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/data/pg"
+	"github.com/varunamachi/libx/errx"
 )
 
-func GenerateRandomUserFilter(gtx context.Context) (*data.Filter, error) {
-	fval, err := pg.GetFilterValues(
-		gtx, "fake_user", UserFilterSpec, nil)
+func GetDataForRandomFilter(
+	gtx context.Context,
+	dataType string,
+	out []any) error {
+	filter, err := GenerateRandomFilter(gtx, dataType)
+	if err != nil {
+		return err
+	}
+
+	cp := data.CommonParams{
+		Filter:         filter,
+		Page:           0,
+		PageSize:       0,
+		Sort:           "",
+		SortDescending: false,
+	}
+
+	if err = pg.NewGetterDeleter().Get(gtx, dataType, &cp, out); err != nil {
+		return errx.Errf(
+			err,
+			"failed to get random values from table '%s'",
+			dataType)
+	}
+	return nil
+}
+
+func GenerateRandomFilter(
+	gtx context.Context, dataType string) (*data.Filter, error) {
+	fval, err := pg.GetFilterValues(gtx, dataType, UserFilterSpec, nil)
 	if err != nil {
 		return nil, err
 	}
-	return GetRandomFilter(gtx, "fake-user", UserFilterSpec, fval)
+	return GetRandomFilter(gtx, dataType, UserFilterSpec, fval)
 }
 
 func GetRandomFilter(
@@ -41,9 +67,11 @@ func GetRandomFilter(
 		case data.FtConstant:
 		case data.FtBoolean:
 		case data.FtSearch:
-			addSearchFilter(gtx, dataType, filter, fspec, filterValues)
+			err := addSearchFilter(gtx, dataType, filter, fspec, filterValues)
+			if err != nil {
+				return nil, err
+			}
 		}
-
 	}
 	return filter, nil
 }
@@ -113,7 +141,7 @@ func addSearchFilter(
 	table string,
 	filter *data.Filter,
 	fspec *data.FilterSpec,
-	fvals *data.FilterValues) {
+	fvals *data.FilterValues) error {
 
 	sq := squirrel.StatementBuilder.
 		Select(fspec.Field).
@@ -122,24 +150,21 @@ func addSearchFilter(
 		Limit(3)
 	query, args, err := sq.ToSql()
 	if err != nil {
-		log.Error().Err(err).Msg(
-			"failed to generate query to get distinct values " +
-				"for generating search fiter")
+		return errx.Errf(err, "failed to generate query to get distinct "+
+			"values for generating search fiter")
 	}
 
 	out := make([]interface{}, 0, 100)
 	err = pg.Conn().SelectContext(gtx, &out, query, args...)
 	if err != nil {
-		log.Error().
-			Err(err).
-			Str("field", fspec.Field).
-			Str("dataType", table).
-			Msg("failed to get distinct values")
+		return errx.Errf(err, "failed to get distinct values for field "+
+			"'%s' from table '%s'", fspec.Field, table)
 	}
 
 	filter.Searches[fspec.Field] = &data.Matcher{
 		Invert: false,
 		Fields: out,
 	}
+	return nil
 
 }

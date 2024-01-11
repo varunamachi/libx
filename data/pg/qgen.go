@@ -2,13 +2,14 @@ package pg
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 )
 
-func NewPgGetterDeleter(deleteTaskTableName string) data.GetterDeleter {
+func NewGetterDeleter() data.GetterDeleter {
 	return &PgGetterDeleter{}
 }
 
@@ -136,6 +137,9 @@ func (pgd *PgGetterDeleter) Get(
 		From(dtype).
 		Where(sel.QueryFragment, sel.Args...)
 	query, args, err := sq.ToSql()
+
+	fmt.Println(query)
+
 	if err != nil {
 		return errx.Errf(err, "failed to build sql query")
 	}
