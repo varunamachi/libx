@@ -139,12 +139,14 @@ func (pgd *PgGetterDeleter) Get(
 	query, args, err := sq.ToSql()
 
 	fmt.Println(query)
+	fmt.Println("****", len(args))
+	fmt.Println(args)
 
 	if err != nil {
 		return errx.Errf(err, "failed to build sql query")
 	}
 
-	err = defDB.SelectContext(gtx, out, query, args...)
+	err = defDB.SelectContext(gtx, out, query, sel.Args...)
 	// err := defDB.SelectContext(gtx, out, sel.QueryFragment, sel.Args...)
 	if err != nil {
 		return errx.Errf(err, "failed to get data for type '%s'", dtype)

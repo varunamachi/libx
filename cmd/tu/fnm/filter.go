@@ -122,7 +122,7 @@ func addDateRangeFilters(
 
 	fullDr := fvals.Dates[fspec.Field]
 
-	mid := fullDr.Difference() / 2
+	mid := fullDr.Difference() / 2 / 100
 
 	start := fullDr.From.Add(time.Duration(rand.Int31n(int32(mid / 2))))
 	end := fullDr.From.Add(-time.Duration(rand.Int31n(int32(mid / 2))))
@@ -166,5 +166,4 @@ func addSearchFilter(
 		Fields: out,
 	}
 	return nil
-
 }

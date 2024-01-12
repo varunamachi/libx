@@ -2,7 +2,6 @@ package pg
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/varunamachi/libx/data"
@@ -38,7 +37,7 @@ func GetFilterValues(
 			if err != nil {
 				return nil, err
 			}
-			fvals.Ranges[spec.Name] = rg
+			fvals.Ranges[spec.Field] = rg
 
 		}
 	}
@@ -61,8 +60,6 @@ func getValues(
 	}
 	query, args, err := sq.ToSql()
 
-	fmt.Println(query)
-	fmt.Println(args)
 	if err != nil {
 		return nil, errx.Errf(err, "failed to build sql query")
 	}

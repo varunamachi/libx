@@ -1,7 +1,6 @@
 package pg
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -63,7 +62,7 @@ func (buf *buffer) writeInt(val int64) *buffer {
 type SelectorGenerator struct {
 	// filter      *data.Filter
 	dollerIndex int64
-	args        []interface{}
+	_args       []interface{}
 	fragments   []string
 }
 
@@ -73,7 +72,7 @@ func NewSelectorGenerator() *SelectorGenerator {
 
 func (gen *SelectorGenerator) Reset() *SelectorGenerator {
 	gen.dollerIndex = 1
-	gen.args = make([]interface{}, 0, 100)
+	gen._args = make([]interface{}, 0, 100)
 	gen.fragments = make([]string, 0, 30)
 	return gen
 }
@@ -97,11 +96,13 @@ func (gen *SelectorGenerator) Selector(filter *data.Filter) Selector {
 			buf.write(" AND ")
 		}
 	}
-	return NewSel(buf.String(), gen.args)
+	return NewSel(buf.String(), gen._args)
 
 }
 
 func (gen *SelectorGenerator) SelectorX(cmnParam *data.CommonParams) Selector {
+
+	// TODO -fix ANDs
 
 	gen.Reset().
 		matchers(cmnParam.Filter.Props).
@@ -113,38 +114,46 @@ func (gen *SelectorGenerator) SelectorX(cmnParam *data.CommonParams) Selector {
 
 	buf := buffer{}
 	for idx, frag := range gen.fragments {
-		fmt.Println(len(gen.fragments)-2, idx, frag)
+		if frag == "" {
+			continue
+		}
+
 		buf.write(frag)
-		if idx != 0 && idx < len(gen.fragments)-1 {
-			buf.write("\n AND \n")
+		if idx < len(gen.fragments)-2 {
+			buf.write(" AND ")
 		}
 	}
 
 	if cmnParam.Limit() != 0 {
 		buf.write(" OFFSET = \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(cmnParam.Offset()).dollerIndex++
+		gen.addArg(cmnParam.Offset())
 		buf.write(" LIMIT = \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(cmnParam.Limit()).dollerIndex++
+		gen.addArg(cmnParam.Limit())
 	}
 
 	if cmnParam.Sort != "" {
 		buf.write(" ORDER BY \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(cmnParam.Sort).dollerIndex++
+		gen.addArg(cmnParam.Sort)
 		buf.write(data.Qop(cmnParam.SortDescending, " DESC", " ASC"))
 	}
 
-	return NewSel(buf.String(), gen.args)
+	return NewSel(buf.String(), gen._args)
 }
 
 func (gen *SelectorGenerator) matchers(
 	pol map[string]*data.Matcher) *SelectorGenerator {
+	if len(pol) == 0 {
+		return gen
+	}
+
 	buf, idx := buffer{}, 0
 	buf.Grow(100)
 
 	for key, prop := range pol {
-		if len(prop.Fields) == 0 {
-			continue
+		if idx != 0 && idx <= len(prop.Fields) {
+			buf.write(" AND ")
 		}
+
 		buf.write(key)
 		if prop.Invert {
 			buf.write(" NOT ")
@@ -152,16 +161,12 @@ func (gen *SelectorGenerator) matchers(
 		buf.write(" IN (")
 		for jdx, p := range prop.Fields {
 			buf.write("\"$").writeInt(gen.dollerIndex).WriteString("\"")
-			gen.addArg(p).dollerIndex++
+			gen.addArg(p)
 			if jdx < len(prop.Fields)-1 {
 				buf.write(", ")
 			}
 		}
 		buf.write(") ")
-
-		if idx < len(pol)-1 {
-			buf.write(" AND ")
-		}
 		idx++
 	}
 	gen.fragments = append(gen.fragments, buf.String())
@@ -170,16 +175,25 @@ func (gen *SelectorGenerator) matchers(
 
 func (gen *SelectorGenerator) bools(
 	bools map[string]interface{}) *SelectorGenerator {
+
+	if len(bools) == 0 {
+		return gen
+	}
+
 	buf, idx := buffer{}, 0
 	buf.Grow(100)
 
 	for key, boolVal := range bools {
-		buf.write(key).write(" = \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(boolVal).dollerIndex++ // :P
 
-		if idx < len(bools)-1 {
+		if idx != 0 && idx <= len(bools)-1 {
 			buf.write(" AND ")
 		}
+
+		buf.write(key).
+			write(" = \"$").
+			writeInt(gen.dollerIndex).
+			WriteString("\"")
+		gen.addArg(boolVal) // :P
 		idx++
 	}
 	gen.fragments = append(gen.fragments, buf.String())
@@ -195,20 +209,22 @@ func (gen *SelectorGenerator) dateRanges(
 	buf.Grow(100)
 
 	for key, dt := range dates {
+
+		if idx != 0 && idx <= len(dates)-1 {
+			buf.write(" AND ")
+		}
+
 		buf.write("(")
 		buf.write(key)
 		if dt.Invert {
 			buf.write(" NOT")
 		}
 		buf.write(" BETWEEN \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(dt.From).dollerIndex++
+		gen.addArg(dt.From)
 		buf.write(" AND \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(dt.To).dollerIndex++
+		gen.addArg(dt.To)
 		buf.write(")")
 
-		if idx < len(dates)-1 {
-			buf.write(" AND ")
-		}
 		idx++
 	}
 	gen.fragments = append(gen.fragments, buf.String())
@@ -225,20 +241,22 @@ func (gen *SelectorGenerator) ranges(
 	buf.Grow(100)
 
 	for key, dt := range ranges {
+
+		if idx != 0 && idx <= len(ranges)-1 {
+			buf.write(" AND ")
+		}
+
 		buf.write("(")
 		buf.write(key)
 		if dt.Invert {
 			buf.write(" NOT")
 		}
 		buf.write(" BETWEEN \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(dt.From).dollerIndex++
+		gen.addArg(dt.From)
 		buf.write(" AND \"$").writeInt(gen.dollerIndex).WriteString("\"")
-		gen.addArg(dt.To).dollerIndex++
+		gen.addArg(dt.To)
 		buf.write(")")
 
-		if idx < len(ranges)-1 {
-			buf.write(" AND ")
-		}
 		idx++
 	}
 	gen.fragments = append(gen.fragments, buf.String())
@@ -254,6 +272,11 @@ func (gen *SelectorGenerator) searches(
 		if len(prop.Fields) == 0 {
 			continue
 		}
+
+		if idx != 0 && idx <= len(searches)-1 {
+			buf.write(" AND ")
+		}
+
 		buf.write("(")
 		for jdx, p := range prop.Fields {
 			buf.write(key)
@@ -264,25 +287,22 @@ func (gen *SelectorGenerator) searches(
 				write(" SIMILAR TO \"$").
 				writeInt(gen.dollerIndex).
 				WriteString("\"")
-			gen.addArg(p).dollerIndex++
+			gen.addArg(p)
 			if jdx < len(prop.Fields)-1 {
 				buf.write(" OR ")
 			}
 		}
 		buf.write(")")
 
-		if idx < len(searches)-1 {
-			buf.write(" AND ")
-		}
 		idx++
 	}
 	fragment := buf.String()
-	fmt.Println(fragment)
 	gen.fragments = append(gen.fragments, fragment)
 	return gen
 }
 
 func (gen *SelectorGenerator) addArg(arg interface{}) *SelectorGenerator {
-	gen.args = append(gen.args, arg)
+	gen._args = append(gen._args, arg)
+	gen.dollerIndex++
 	return gen
 }
