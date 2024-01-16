@@ -2,7 +2,6 @@ package pg
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/varunamachi/libx/data"
@@ -128,7 +127,7 @@ func (pgd *PgGetterDeleter) Get(
 	gtx context.Context,
 	dtype string,
 	params *data.CommonParams,
-	out interface{}) error {
+	out any) error {
 	// sel := GenQueryX(params, "SELECT * FROM %s", dtype)
 	sel := NewSelectorGenerator().SelectorX(params)
 	sq := squirrel.StatementBuilder.
@@ -138,15 +137,11 @@ func (pgd *PgGetterDeleter) Get(
 		Where(sel.QueryFragment, sel.Args...)
 	query, args, err := sq.ToSql()
 
-	fmt.Println(query)
-	fmt.Println("****", len(args))
-	fmt.Println(args)
-
 	if err != nil {
 		return errx.Errf(err, "failed to build sql query")
 	}
 
-	err = defDB.SelectContext(gtx, out, query, sel.Args...)
+	err = defDB.SelectContext(gtx, out, query, args...)
 	// err := defDB.SelectContext(gtx, out, sel.QueryFragment, sel.Args...)
 	if err != nil {
 		return errx.Errf(err, "failed to get data for type '%s'", dtype)

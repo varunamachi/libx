@@ -1,8 +1,11 @@
 package fnm
 
 import (
+	"errors"
+
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx/data/pg"
+	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/iox"
 )
 
@@ -63,17 +66,29 @@ func createAndApplyRandomFilter() *cli.Command {
 		Flags:       []cli.Flag{},
 		Action: func(ctx *cli.Context) error {
 
-			out := make([]any, 0, 100)
+			var out any
+
+			switch ctx.String("data-type") {
+			case "fake_user":
+				out = make([]*FkUser, 0, 100)
+			case "fake_item":
+				out = make([]*FkItem, 0, 100)
+			default:
+				return errx.Errf(errors.New("invalid data type"),
+					"invalid data type '%s'", ctx.String("data-type"))
+			}
+
+			// out := make([]any, 0, 100)
 
 			err := GetDataForRandomFilter(
 				ctx.Context,
 				ctx.String("data-type"),
-				out)
+				&out)
 			if err != nil {
 				return err
 			}
 
-			iox.PrintJSON(out)
+			iox.PrintJSON(&out)
 			return nil
 		},
 	}

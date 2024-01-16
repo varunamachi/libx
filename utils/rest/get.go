@@ -60,7 +60,7 @@ func Get[T any](etx echo.Context, gdr data.GetterDeleter) ([]T, error) {
 
 	out := make([]T, 0, 100)
 
-	err = gdr.Get(etx.Request().Context(), dtype, cparams, &out)
+	err = gdr.Get(etx.Request().Context(), dtype, cparams, []any{})
 	if err != nil {
 		return nil, err
 	}

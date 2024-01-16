@@ -14,7 +14,7 @@ import (
 func GetDataForRandomFilter(
 	gtx context.Context,
 	dataType string,
-	out []any) error {
+	out any) error {
 	filter, err := GenerateRandomFilter(gtx, dataType)
 	if err != nil {
 		return err

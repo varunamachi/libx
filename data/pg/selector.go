@@ -125,14 +125,14 @@ func (gen *SelectorGenerator) SelectorX(cmnParam *data.CommonParams) Selector {
 	}
 
 	if cmnParam.Limit() != 0 {
-		buf.write(" OFFSET = \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" OFFSET = $").writeInt(gen.dollerIndex)
 		gen.addArg(cmnParam.Offset())
-		buf.write(" LIMIT = \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" LIMIT = $").writeInt(gen.dollerIndex)
 		gen.addArg(cmnParam.Limit())
 	}
 
 	if cmnParam.Sort != "" {
-		buf.write(" ORDER BY \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" ORDER BY $").writeInt(gen.dollerIndex)
 		gen.addArg(cmnParam.Sort)
 		buf.write(data.Qop(cmnParam.SortDescending, " DESC", " ASC"))
 	}
@@ -160,7 +160,7 @@ func (gen *SelectorGenerator) matchers(
 		}
 		buf.write(" IN (")
 		for jdx, p := range prop.Fields {
-			buf.write("\"$").writeInt(gen.dollerIndex).WriteString("\"")
+			buf.write("$").writeInt(gen.dollerIndex)
 			gen.addArg(p)
 			if jdx < len(prop.Fields)-1 {
 				buf.write(", ")
@@ -190,9 +190,8 @@ func (gen *SelectorGenerator) bools(
 		}
 
 		buf.write(key).
-			write(" = \"$").
-			writeInt(gen.dollerIndex).
-			WriteString("\"")
+			write(" = $").
+			writeInt(gen.dollerIndex)
 		gen.addArg(boolVal) // :P
 		idx++
 	}
@@ -219,9 +218,9 @@ func (gen *SelectorGenerator) dateRanges(
 		if dt.Invert {
 			buf.write(" NOT")
 		}
-		buf.write(" BETWEEN \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" BETWEEN $").writeInt(gen.dollerIndex)
 		gen.addArg(dt.From)
-		buf.write(" AND \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" AND $").writeInt(gen.dollerIndex)
 		gen.addArg(dt.To)
 		buf.write(")")
 
@@ -251,9 +250,9 @@ func (gen *SelectorGenerator) ranges(
 		if dt.Invert {
 			buf.write(" NOT")
 		}
-		buf.write(" BETWEEN \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" BETWEEN $").writeInt(gen.dollerIndex)
 		gen.addArg(dt.From)
-		buf.write(" AND \"$").writeInt(gen.dollerIndex).WriteString("\"")
+		buf.write(" AND $").writeInt(gen.dollerIndex)
 		gen.addArg(dt.To)
 		buf.write(")")
 
@@ -284,9 +283,8 @@ func (gen *SelectorGenerator) searches(
 				buf.write(" NOT")
 			}
 			buf.
-				write(" SIMILAR TO \"$").
-				writeInt(gen.dollerIndex).
-				WriteString("\"")
+				write(" SIMILAR TO $").
+				writeInt(gen.dollerIndex)
 			gen.addArg(p)
 			if jdx < len(prop.Fields)-1 {
 				buf.write(" OR ")
