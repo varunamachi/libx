@@ -29,14 +29,14 @@ type FkItem struct {
 
 var UserFilterSpec = []*data.FilterSpec{
 	{Field: "name", Name: "Name", Type: data.FtProp},
-	{Field: "first_name", Name: "First Name", Type: data.FtProp},
-	{Field: "last_name", Name: "Last Name", Type: data.FtProp},
-	{Field: "email", Name: "Email", Type: data.FtProp},
-	{Field: "age", Name: "Age", Type: data.FtNumRange},
-	{Field: "tags", Name: "Tags", Type: data.FtArray},
+	// {Field: "first_name", Name: "First Name", Type: data.FtProp},
+	// {Field: "last_name", Name: "Last Name", Type: data.FtProp},
+	// {Field: "email", Name: "Email", Type: data.FtProp},
+	// {Field: "age", Name: "Age", Type: data.FtNumRange},
+	// {Field: "tags", Name: "Tags", Type: data.FtArray},
 	{Field: "status", Name: "Status", Type: data.FtProp},
-	{Field: "created", Name: "Created", Type: data.FtDateRange},
-	{Field: "updated", Name: "Updated", Type: data.FtDateRange},
+	// {Field: "created", Name: "Created", Type: data.FtDateRange},
+	// {Field: "updated", Name: "Updated", Type: data.FtDateRange},
 }
 
 var ItemFilterSpec = []*data.FilterSpec{

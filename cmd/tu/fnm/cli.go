@@ -70,25 +70,25 @@ func createAndApplyRandomFilter() *cli.Command {
 
 			switch ctx.String("data-type") {
 			case "fake_user":
-				out = make([]*FkUser, 0, 100)
+				a := make([]*FkUser, 0, 100)
+				out = &a
 			case "fake_item":
-				out = make([]*FkItem, 0, 100)
+				b := make([]*FkItem, 0, 100)
+				out = &b
 			default:
 				return errx.Errf(errors.New("invalid data type"),
 					"invalid data type '%s'", ctx.String("data-type"))
 			}
 
-			// out := make([]any, 0, 100)
-
 			err := GetDataForRandomFilter(
 				ctx.Context,
 				ctx.String("data-type"),
-				&out)
+				out)
 			if err != nil {
 				return err
 			}
 
-			iox.PrintJSON(&out)
+			iox.PrintJSON(out)
 			return nil
 		},
 	}

@@ -128,7 +128,6 @@ func (pgd *PgGetterDeleter) Get(
 	dtype string,
 	params *data.CommonParams,
 	out any) error {
-	// sel := GenQueryX(params, "SELECT * FROM %s", dtype)
 	sel := NewSelectorGenerator().SelectorX(params)
 	sq := squirrel.StatementBuilder.
 		PlaceholderFormat(squirrel.Dollar).
@@ -141,9 +140,7 @@ func (pgd *PgGetterDeleter) Get(
 		return errx.Errf(err, "failed to build sql query")
 	}
 
-	err = defDB.SelectContext(gtx, out, query, args...)
-	// err := defDB.SelectContext(gtx, out, sel.QueryFragment, sel.Args...)
-	if err != nil {
+	if err = defDB.SelectContext(gtx, out, query, args...); err != nil {
 		return errx.Errf(err, "failed to get data for type '%s'", dtype)
 	}
 	return nil
