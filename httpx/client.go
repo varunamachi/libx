@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -119,7 +120,18 @@ func (ar *ApiResult) LoadClose(out interface{}) error {
 		return ar.Error()
 	}
 
-	ar.err = json.NewDecoder(ar.resp.Body).Decode(out)
+	var reader io.ReadCloser = ar.resp.Body
+	var err error
+	switch ar.resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(ar.resp.Body)
+		if err != nil {
+			return errx.Errf(err, "failed to create gzip reader for response")
+		}
+		defer reader.Close()
+	}
+
+	ar.err = json.NewDecoder(reader).Decode(out)
 	return ar.err
 }
 
@@ -302,7 +314,7 @@ func (client *Client) Post(
 	return client.putOrPost(gtx, echo.POST, content, urlArgs...)
 }
 
-//Put - performs a put request
+// Put - performs a put request
 func (client *Client) Put(
 	gtx context.Context,
 	content interface{},
@@ -310,7 +322,7 @@ func (client *Client) Put(
 	return client.putOrPost(gtx, echo.PUT, content, urlArgs...)
 }
 
-//Delete - performs a delete request
+// Delete - performs a delete request
 func (client *Client) Delete(
 	gtx context.Context,
 	urlArgs ...string) *ApiResult {
