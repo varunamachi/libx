@@ -5,7 +5,7 @@ type PermissionTree struct {
 }
 
 type PermissionNode struct {
-	IdNum      int               `json:"idNum" db:"idNum"`
+	Id         int               `json:"id" db:"id"`
 	PermId     string            `json:"permId" db:"permId"`
 	Name       string            `json:"name" db:"name"`
 	Predefined bool              `json:"predefined" db:"predefined"`

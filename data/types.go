@@ -49,6 +49,28 @@ func (v Vec[T]) AsSlice() []T {
 	return ([]T)(v)
 }
 
+type DbJson[T any] struct {
+	val *T
+}
+
+func (dbj *DbJson[T]) Scan(value any) error {
+	if value == nil {
+		dbj.val = nil
+		return nil
+	}
+	dbj.val = new(T)
+
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(b, dbj.val)
+}
+
+func (dbj *DbJson[T]) Value() (driver.Value, error) {
+	return json.Marshal(dbj.val)
+}
+
 // DateRange - represents date ranges
 type DateRange struct {
 	// Name string    `json:"name" bson:"name"`
