@@ -21,23 +21,6 @@ func (pgd *PgGetterDeleter) Delete(
 	keyField string,
 	keys ...interface{}) error {
 
-	// var buf strings.Builder
-	// buf.WriteString("DELETE FROM ")
-	// buf.WriteString(dataType)
-	// buf.WriteString(" WHERE ")
-	// buf.WriteString(keyField)
-	// buf.WriteString("IN (?)")
-
-	// query, args, err := sqlx.In(sql, args...)
-	// if err != nil {
-	// 	return errx.Errf(err, "")
-	// }
-
-	// query = Conn().Rebind(query)
-	// if _, err = defDB.ExecContext(gtx, query, args...); err != nil {
-	// 	return errx.Errf(err, "")
-	// }
-
 	sq := squirrel.StatementBuilder.
 		PlaceholderFormat(squirrel.Dollar).
 		Delete(dataType).
@@ -61,23 +44,6 @@ func (pgd *PgGetterDeleter) GetOne(
 	key interface{},
 	data interface{}) error {
 
-	// var buf strings.Builder
-	// buf.WriteString("SELECT * FROM ")
-	// buf.WriteString(dataType)
-	// buf.WriteString(" WHERE ")
-	// buf.WriteString(keyField)
-	// buf.WriteString("IN (?)")
-
-	// query, args, err := sqlx.In(buf.String(), keys)
-	// if err != nil {
-	// 	return errx.Errf(err, "failed to get values for")
-	// }
-
-	// query = Conn().Rebind(query)
-	// if _, err = defDB.ExecContext(gtx, query, args...); err != nil {
-	// 	return errx.Errf(err, "")
-	// }
-
 	sq := squirrel.StatementBuilder.
 		PlaceholderFormat(squirrel.Dollar).
 		Select(dataType).
@@ -100,7 +66,6 @@ func (pgd *PgGetterDeleter) Count(
 	dtype string,
 	filter *data.Filter) (int64, error) {
 
-	// sel := GenQuery(filter, "SELECT COUNT(*) FROM %s", dtype)
 	sel := NewSelectorGenerator().Selector(filter)
 	sq := squirrel.StatementBuilder.
 		PlaceholderFormat(squirrel.Dollar).
@@ -115,7 +80,6 @@ func (pgd *PgGetterDeleter) Count(
 
 	count := int64(0)
 	err = defDB.SelectContext(gtx, &count, query, args...)
-	// err := defDB.SelectContext(gtx, &count, sel.QueryFragment, sel.Args...)
 	if err != nil {
 		return 0, errx.Errf(
 			err, "failed to get count for data type '%s'", dtype)
