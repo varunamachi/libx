@@ -9,13 +9,13 @@ import (
 )
 
 func NewGetterDeleter() data.GetterDeleter {
-	return &PgGetterDeleter{}
+	return &GetterDeleter{}
 }
 
-type PgGetterDeleter struct {
+type GetterDeleter struct {
 }
 
-func (pgd *PgGetterDeleter) Delete(
+func (pgd *GetterDeleter) Delete(
 	gtx context.Context,
 	dataType string,
 	keyField string,
@@ -37,7 +37,7 @@ func (pgd *PgGetterDeleter) Delete(
 	return nil
 }
 
-func (pgd *PgGetterDeleter) GetOne(
+func (pgd *GetterDeleter) GetOne(
 	gtx context.Context,
 	dataType string,
 	keyField string,
@@ -61,7 +61,7 @@ func (pgd *PgGetterDeleter) GetOne(
 	return nil
 }
 
-func (pgd *PgGetterDeleter) Count(
+func (pgd *GetterDeleter) Count(
 	gtx context.Context,
 	dtype string,
 	filter *data.Filter) (int64, error) {
@@ -87,7 +87,7 @@ func (pgd *PgGetterDeleter) Count(
 	return count, nil
 }
 
-func (pgd *PgGetterDeleter) Get(
+func (pgd *GetterDeleter) Get(
 	gtx context.Context,
 	dtype string,
 	params *data.CommonParams,
@@ -110,7 +110,7 @@ func (pgd *PgGetterDeleter) Get(
 	return nil
 }
 
-func (pgd *PgGetterDeleter) FilterValues(
+func (pgd *GetterDeleter) FilterValues(
 	gtx context.Context,
 	dtype string,
 	specs []*data.FilterSpec,
