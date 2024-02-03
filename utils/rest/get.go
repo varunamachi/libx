@@ -23,7 +23,7 @@ func GetCommonParams(etx echo.Context) (*data.CommonParams, error) {
 
 	if pmg.HasError() {
 		pmg.WriteDetailedError(os.Stdout)
-		return nil, pmg.Error()
+		return nil, pmg.BadReqError()
 	}
 	return &data.CommonParams{
 		Page:           page,

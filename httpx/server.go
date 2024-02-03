@@ -19,19 +19,19 @@ func (nw *noopWriter) Write(b []byte) (int, error) {
 }
 
 type Endpoint struct {
-	Method     string
-	Path       string
-	Category   string
-	Desc       string
-	Version    string
-	Role       auth.Role
-	Permission string
-	Route      *echo.Route
-	Handler    echo.HandlerFunc
+	Method      string
+	Path        string
+	Category    string
+	Desc        string
+	Version     string
+	Role        auth.Role
+	Permissions []string
+	Route       *echo.Route
+	Handler     echo.HandlerFunc
 }
 
 func (ep *Endpoint) NeedsAuth() bool {
-	return ep.Permission != "" || (ep.Role != auth.None && ep.Role != "")
+	return len(ep.Permissions) != 0 || (ep.Role != auth.None && ep.Role != "")
 }
 
 type Server struct {

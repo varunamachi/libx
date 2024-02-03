@@ -17,7 +17,7 @@ const (
 	EnvPrintAllAccess = "VLIBX_HTTP_PRINT_ALL_ACCESS"
 )
 
-//getToken - gets token from context or from header
+// getToken - gets token from context or from header
 func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 	itk := ctx.Get("token")
 	if itk != nil {
@@ -43,7 +43,7 @@ func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 	return token, err
 }
 
-//RetrieveSessionInfo - retrieves session information from JWT token
+// RetrieveSessionInfo - retrieves session information from JWT token
 func retrieveUserId(ctx echo.Context) (string, string, error) {
 	token, err := getToken(ctx)
 	if err != nil {
@@ -98,7 +98,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 				return err
 			}
 
-			hasAccess := auth.HasPerms(user, ep.Permission) &&
+			hasAccess := auth.HasPerms(user, ep.Permissions...) &&
 				auth.HasRole(user, ep.Role)
 			if !hasAccess {
 				return &echo.HTTPError{
