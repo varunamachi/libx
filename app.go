@@ -67,7 +67,7 @@ func NewApp(name, description, versionStr, author string) *App {
 			},
 		},
 	}
-	app.Metadata = map[string]interface{}{"app": app}
+	app.Metadata = map[string]any{"app": app}
 	return app
 }
 
@@ -75,7 +75,7 @@ func NewCustomApp(cApp *cli.App) *App {
 	app := &App{
 		App: cApp,
 	}
-	app.Metadata = map[string]interface{}{"app": app}
+	app.Metadata = map[string]any{"app": app}
 	return app
 }
 
@@ -105,4 +105,24 @@ func (app *App) BuildInfo() *BuildInfo {
 
 func (app *App) Serve(port uint32) error {
 	return app.server.Start(port)
+}
+
+func (app *App) StopServer() error {
+	if app.server == nil {
+		log.Trace().Msg("no running server found to stop")
+		return nil
+	}
+	if err := app.server.Close(); err != nil {
+		return err
+	}
+	app.server = nil
+	return nil
+}
+
+func MustGetApp(ctx *cli.Context) *App {
+	app, ok := ctx.App.Metadata["app"].(*App)
+	if !ok {
+		panic("invalid application type, please use libx.app.App")
+	}
+	return app
 }
