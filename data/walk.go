@@ -243,3 +243,13 @@ func walkRecursive(config *WalkConfig, state WalkerState) {
 	}
 
 }
+
+func WalkPath(obj any, path string, out any) error {
+	// TODO - implement
+	return nil
+}
+
+func walkPath(index int, path []string, state *WalkerState) error {
+	// TODO - implement
+	return nil
+}

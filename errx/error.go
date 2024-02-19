@@ -32,6 +32,20 @@ func (ex *Error) String() string {
 	return ex.Err.Error() + ": " + ex.Msg
 }
 
+func Fmt(msg string, args ...interface{}) *Error {
+	_, file, line, _ := runtime.Caller(1)
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	return &Error{
+		Err:  nil,
+		Code: "",
+		Msg:  msg,
+		File: file,
+		Line: line,
+	}
+}
+
 func Errf(inner error, msg string, args ...interface{}) *Error {
 	_, file, line, _ := runtime.Caller(1)
 	if len(args) > 0 {
