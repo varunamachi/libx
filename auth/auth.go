@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 	"github.com/varunamachi/libx/errx"
 )
 
@@ -16,7 +17,30 @@ const (
 	// UserSessionTimeout = time.Minute // 1 minute - for testing
 )
 
-type AuthData map[string]interface{}
+type (
+	AuthData        map[string]interface{}
+	userAndPassword struct {
+		UserId   string `json:"userId"`
+		Password string `json:"password"`
+	}
+)
+
+func (ad AuthData) Decode(out any) error {
+	if err := mapstructure.Decode(&ad, &out); err != nil {
+		return errx.Errf(err, "failed to decode auth data")
+	}
+	return nil
+}
+
+func (ad AuthData) ToUserAndPassword() (
+	userId string, password string, err error) {
+
+	var up userAndPassword
+	if err := ad.Decode(&up); err != nil {
+		return "", "", err
+	}
+	return up.UserId, up.Password, nil
+}
 
 var (
 	ErrAuthentication         = errors.New("auth.user.authenticationError")
@@ -38,6 +62,7 @@ type UserAuthenticator interface {
 	UserGetter
 }
 
+// TODO - remove once idx is operational
 // Login - authenticates the user, get's the user information and generates a
 // JWT token. The user and the token are then returned. And in case of error
 // the error is returned
@@ -69,7 +94,7 @@ func Login(
 
 }
 
-//GetJWTKey - gives a unique JWT key
+// GetJWTKey - gives a unique JWT key
 func GetJWTKey() []byte {
 	jwtKey := os.Getenv("VLIBX_JWT_KEY")
 	if len(jwtKey) == 0 {

@@ -1,9 +1,18 @@
 package data
 
 import (
+	"errors"
 	"reflect"
+	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/str"
+)
+
+var (
+	ErrInvalidWalkPath = errors.New("invalid walk path")
 )
 
 // IsBasicType - tells if the kind of data type is basic or composite
@@ -236,7 +245,7 @@ func walkRecursive(config *WalkConfig, state WalkerState) {
 		}
 	// And everything else will simply be taken from the original
 	default:
-		if cont := config.Visitor(&state); !cont {
+		if !config.Visitor(&state) {
 			return
 		}
 
@@ -244,12 +253,91 @@ func walkRecursive(config *WalkConfig, state WalkerState) {
 
 }
 
-func WalkPath(obj any, path string, out any) error {
-	// TODO - implement
-	return nil
-}
+// TODO - handle properly
+var indexRegEx, _ = regexp.Compile(`^#\-?\d+`)
 
-func walkPath(index int, path []string, state *WalkerState) error {
-	// TODO - implement
-	return nil
+func WalkPath(obj any, path []string, out any) (reflect.Value, error) {
+	var cur reflect.Value
+
+	for pi := 0; pi < len(path); {
+
+		// last := pi == len(path)-1
+		pathElem := path[pi]
+		cur = reflect.ValueOf(obj)
+
+		switch cur.Kind() {
+		case reflect.Ptr:
+			cur = cur.Elem()
+			if !cur.IsValid() {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath, "invalid pointer value")
+			}
+			continue
+
+		case reflect.Interface:
+			cur = cur.Elem()
+			continue
+		case reflect.Struct:
+			if indexRegEx.MatchString(pathElem) {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath, "expected slice got struct")
+			}
+
+			for i := 0; i < cur.NumField(); i++ {
+				field := cur.Field(i)
+				//Not interested in unexported fields
+				if !field.CanSet() {
+					continue
+				}
+				structField := cur.Type().Field(i)
+
+				if str.EqFold(structField.Name, pathElem) {
+					cur = field
+				}
+			}
+
+			return reflect.ValueOf(nil),
+				errx.Errf(ErrInvalidWalkPath,
+					"could not find path element '%s'", pathElem)
+
+		case reflect.Slice:
+			if !indexRegEx.MatchString(pathElem) {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath,
+						"expected key or a name, go slice")
+			}
+
+			index, err := strconv.Atoi(pathElem[1:])
+			if err != nil {
+				return reflect.ValueOf(nil),
+					errx.Errf(err,
+						"failed to get index from path element: '%s'", pathElem)
+			}
+
+			if index >= cur.Len() {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath,
+						"requested index '%d' is greater than slice index '%d'",
+						index, cur.Len())
+			}
+			cur = cur.Index(index)
+		case reflect.Map:
+			if indexRegEx.MatchString(pathElem) {
+				return reflect.ValueOf(nil),
+					errx.Errf(
+						ErrInvalidWalkPath, "expected slice got struct")
+			}
+			cur = cur.MapIndex(reflect.ValueOf(pathElem))
+			if cur.IsZero() {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath,
+						"map does not have key '%s'", pathElem)
+			}
+		default:
+			// TODO implement
+
+		}
+
+	}
+	return cur, nil
 }
