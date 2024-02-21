@@ -13,6 +13,7 @@ import (
 
 var (
 	ErrInvalidWalkPath = errors.New("invalid walk path")
+	ErrInvalidData     = errors.New("invalid data")
 )
 
 // IsBasicType - tells if the kind of data type is basic or composite
@@ -253,15 +254,54 @@ func walkRecursive(config *WalkConfig, state WalkerState) {
 
 }
 
+func Get(obj any, out any, path ...string) error {
+	val, err := WalkPath(obj, path...)
+	if err != nil {
+		return err
+	}
+
+	if !val.IsValid() {
+		return errx.Errf(
+			ErrInvalidWalkPath, "invalid value found at given path")
+	}
+
+	if val.Type().AssignableTo(reflect.TypeOf(out)) {
+		reflect.ValueOf(out).Set(val)
+		return nil
+	}
+
+	// TODO - what happens here??
+	return nil
+}
+
+func Set(obj any, newVal any, path ...string) error {
+	val, err := WalkPath(obj, path...)
+	if err != nil {
+		return err
+	}
+
+	if !val.IsValid() {
+		return errx.Errf(
+			ErrInvalidWalkPath, "invalid value found at given path")
+	}
+
+	if reflect.TypeOf(newVal).AssignableTo(val.Type()) {
+		val.Set(reflect.ValueOf(newVal))
+		return nil
+	}
+
+	// TODO - handle cases of struct to map??
+
+	return nil
+}
+
 // TODO - handle properly
 var indexRegEx, _ = regexp.Compile(`^#\-?\d+`)
 
-func WalkPath(obj any, path []string, out any) (reflect.Value, error) {
+func WalkPath(obj any, path ...string) (reflect.Value, error) {
 	var cur reflect.Value
 
 	for pi := 0; pi < len(path); {
-
-		// last := pi == len(path)-1
 		pathElem := path[pi]
 		cur = reflect.ValueOf(obj)
 
@@ -314,10 +354,11 @@ func WalkPath(obj any, path []string, out any) (reflect.Value, error) {
 						"failed to get index from path element: '%s'", pathElem)
 			}
 
-			if index >= cur.Len() {
+			index = Qop(index < 0, cur.Len()+index, index)
+			if index < 0 || index >= cur.Len() {
 				return reflect.ValueOf(nil),
 					errx.Errf(ErrInvalidWalkPath,
-						"requested index '%d' is greater than slice index '%d'",
+						"invalid index '%d', slice size: '%d'",
 						index, cur.Len())
 			}
 			cur = cur.Index(index)
@@ -334,10 +375,22 @@ func WalkPath(obj any, path []string, out any) (reflect.Value, error) {
 						"map does not have key '%s'", pathElem)
 			}
 		default:
-			// TODO implement
-
+			if !IsBasicType(cur.Kind()) {
+				return reflect.ValueOf(nil), errx.Errf(
+					ErrInvalidData,
+					"chans, funcs, unsafe-ptrs are not supported, found: '%s'",
+					cur.Kind().String())
+			}
+			if pi != len(path)-1 {
+				return reflect.ValueOf(nil),
+					errx.Errf(ErrInvalidWalkPath,
+						"found a primitive in the middle of the path, "+
+							"cannot proceed. Index: %d, PathElement: %s",
+						pi, pathElem)
+			}
+			// Here it should automatically brake, since pi == len(path) in
+			// next iteration
 		}
-
 	}
 	return cur, nil
 }
