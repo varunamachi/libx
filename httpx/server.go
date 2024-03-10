@@ -41,10 +41,10 @@ type Server struct {
 	pageEps       []*Endpoint
 	echo          *echo.Echo
 	printer       io.Writer
-	userRetriever auth.UserRetrieverFunc
+	userRetriever auth.UserRetriever
 }
 
-func NewServer(printer io.Writer, userGetter auth.UserRetrieverFunc) *Server {
+func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
 	if printer == nil {
 		printer = &noopWriter{}
 	}

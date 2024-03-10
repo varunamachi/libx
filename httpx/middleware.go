@@ -93,7 +93,8 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			// 	}
 			// }
 
-			user, err := server.userRetriever(etx.Request().Context(), userId)
+			user, err := server.userRetriever.GetUser(
+				etx.Request().Context(), userId)
 			if err != nil {
 				return err
 			}

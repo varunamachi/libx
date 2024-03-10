@@ -79,7 +79,7 @@ func NewCustomApp(cApp *cli.App) *App {
 	return app
 }
 
-func (app *App) WithServer(port int, userGetter auth.UserRetrieverFunc) *App {
+func (app *App) WithServer(port int, userGetter auth.UserRetriever) *App {
 	app.server = httpx.NewServer(os.Stdout, userGetter)
 	return app
 }

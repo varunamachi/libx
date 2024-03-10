@@ -89,5 +89,11 @@ func ToRole(roleStr string) Role {
 	return None
 }
 
-type UserRetrieverFunc func(
-	gtx context.Context, userId string) (User, error)
+// TODO - make this and interface, so that implementation has more freedom
+// to access the logic that gets the user information
+// type UserRetrieverFunc func(
+// 	gtx context.Context, userId string) (User, error)
+
+type UserRetriever interface {
+	GetUser(gtx context.Context, userId string) (User, error)
+}
