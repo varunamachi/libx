@@ -13,6 +13,9 @@ import (
 )
 
 type noopWriter struct{}
+type userKeyType string
+
+const UserKey = userKeyType("requestUser")
 
 func (nw *noopWriter) Write(b []byte) (int, error) {
 	return 0, nil

@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/str"
@@ -280,9 +282,26 @@ func (pm *ParamGetter) WriteDetailedError(w io.Writer) {
 	}
 }
 
-func MustGetUser(etx echo.Context) *auth.User {
+func MustGetEndpoint(etx echo.Context) *Endpoint {
+	obj := etx.Get("endpoint")
+	ep, ok := obj.(*Endpoint)
+	if !ok {
+		panic("failed to get endpoint info from echo.Context")
+	}
+	return ep
+}
+
+func StrMsg(err *echo.HTTPError) string {
+	msg, ok := err.Message.(string)
+	if !ok {
+		return ""
+	}
+	return msg
+}
+
+func MustGetUser(etx echo.Context) auth.User {
 	obj := etx.Get("user")
-	user, ok := obj.(*auth.User)
+	user, ok := obj.(auth.User)
 	if !ok {
 		panic("failed to get user info from echo.Context")
 	}
@@ -303,19 +322,19 @@ func GetUserId(etx echo.Context) string {
 	return user.Id()
 }
 
-func MustGetEndpoint(etx echo.Context) *Endpoint {
-	obj := etx.Get("endpoint")
-	ep, ok := obj.(*Endpoint)
-	if !ok {
-		panic("failed to get endpoint info from echo.Context")
+func GetUser[T auth.User](gtx context.Context) T {
+	val := gtx.Value(UserKey)
+	if val == nil {
+		log.Warn().Msg("user not in context")
+		var t T
+		return t
 	}
-	return ep
-}
 
-func StrMsg(err *echo.HTTPError) string {
-	msg, ok := err.Message.(string)
+	user, ok := val.(T)
 	if !ok {
-		return ""
+		log.Warn().Msg("invalid context user")
+		return user
 	}
-	return msg
+
+	return user
 }

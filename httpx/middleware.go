@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -112,6 +113,12 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			etx.Set("endpoint", ep)
 			etx.Set("user", user)
 			etx.Set("userId", userId)
+
+			// Make user information part of the request context
+			gtx := context.WithValue(etx.Request().Context(), UserKey, user)
+			req := etx.Request().WithContext(gtx)
+			etx.SetRequest(req)
+
 			return next(etx)
 		}
 	}

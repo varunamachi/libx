@@ -51,6 +51,24 @@ func EnvUInt64(name string, def uint64) uint64 {
 	return val
 }
 
+func EnvInt(name string, def int) int {
+	ev := os.Getenv(name)
+	val, err := strconv.Atoi(ev)
+	if err != nil {
+		return def
+	}
+	return val
+}
+
+func EnvUInt(name string, def uint) uint {
+	ev := os.Getenv(name)
+	val, err := strconv.Atoi(ev)
+	if err != nil {
+		return def
+	}
+	return uint(val)
+}
+
 func EnvFloat64(name string, def float64) float64 {
 	ev := os.Getenv(name)
 	val, err := strconv.ParseFloat(ev, 64)

@@ -105,6 +105,11 @@ type Deleter interface {
 }
 
 type Getter interface {
+	Exists(
+		gtx context.Context,
+		dtype, keyField string,
+		id any) (bool, error)
+
 	Count(
 		gtx context.Context,
 		dtype string,

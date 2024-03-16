@@ -9,13 +9,41 @@ import (
 )
 
 func NewGetterDeleter() data.GetterDeleter {
-	return &GetterDeleter{}
+	return &getterDeleter{}
 }
 
-type GetterDeleter struct {
+type getterDeleter struct {
 }
 
-func (pgd *GetterDeleter) Delete(
+func (pgd *getterDeleter) Exists(
+	gtx context.Context, dtype, keyField string, id any) (bool, error) {
+
+	sq := squirrel.
+		StatementBuilder.
+		PlaceholderFormat(squirrel.Dollar).
+		Select("1").
+		From(dtype).
+		Where(squirrel.Eq{keyField: id}).
+		Limit(1)
+
+	sql, args, err := sq.ToSql()
+	if err != nil {
+		return false, errx.Errf(err,
+			"failed to build sql query to check existance of a row")
+	}
+
+	query := "SELECT EXISTS(" + sql + ")"
+
+	exists := false
+	if err := defDB.GetContext(gtx, &exists, query, args...); err != nil {
+		return false, errx.Errf(err,
+			"failed to check object existance ('%s' => '%s' == '%s')",
+			dtype, keyField, id)
+	}
+	return exists, nil
+}
+
+func (pgd *getterDeleter) Delete(
 	gtx context.Context,
 	dataType string,
 	keyField string,
@@ -37,7 +65,7 @@ func (pgd *GetterDeleter) Delete(
 	return nil
 }
 
-func (pgd *GetterDeleter) GetOne(
+func (pgd *getterDeleter) GetOne(
 	gtx context.Context,
 	dataType string,
 	keyField string,
@@ -46,7 +74,8 @@ func (pgd *GetterDeleter) GetOne(
 
 	sq := squirrel.StatementBuilder.
 		PlaceholderFormat(squirrel.Dollar).
-		Select(dataType).
+		Select("*").
+		From(dataType).
 		Where(squirrel.Eq{keyField: key}).
 		Limit(1)
 
@@ -61,7 +90,7 @@ func (pgd *GetterDeleter) GetOne(
 	return nil
 }
 
-func (pgd *GetterDeleter) Count(
+func (pgd *getterDeleter) Count(
 	gtx context.Context,
 	dtype string,
 	filter *data.Filter) (int64, error) {
@@ -87,7 +116,7 @@ func (pgd *GetterDeleter) Count(
 	return count, nil
 }
 
-func (pgd *GetterDeleter) Get(
+func (pgd *getterDeleter) Get(
 	gtx context.Context,
 	dtype string,
 	params *data.CommonParams,
@@ -110,7 +139,7 @@ func (pgd *GetterDeleter) Get(
 	return nil
 }
 
-func (pgd *GetterDeleter) FilterValues(
+func (pgd *getterDeleter) FilterValues(
 	gtx context.Context,
 	dtype string,
 	specs []*data.FilterSpec,
