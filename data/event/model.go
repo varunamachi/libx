@@ -129,3 +129,8 @@ func (adder *Adder) Commit(err error) error {
 	}
 	return err
 }
+
+func (adder *Adder) Errf(err error, fmtStr string, args ...any) error {
+	err = errx.Errf(err, fmtStr, args...)
+	return adder.Commit(err)
+}
