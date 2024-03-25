@@ -60,7 +60,7 @@ func HasPerms(u User, permIds ...string) bool {
 }
 
 type User interface {
-	SeqId() int
+	SeqId() int64
 	Id() string
 	Email() string
 	FullName() string
