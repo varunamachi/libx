@@ -6,12 +6,14 @@ import (
 )
 
 type Message struct {
+	Id         string
 	From       string
 	To         []string
 	Cc         []string
 	Bcc        []string
 	Attachment []*mail.File // chnage to custom type if required
 	Content    string
+	Data       any
 }
 
 func (m *Message) SetContent(td *str.TemplateDesc) error {
@@ -20,6 +22,7 @@ func (m *Message) SetContent(td *str.TemplateDesc) error {
 		return err
 	}
 	m.Content = c
+	m.Data = td.Data
 	return nil
 }
 
