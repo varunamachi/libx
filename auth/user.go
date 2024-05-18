@@ -11,6 +11,12 @@ const (
 	Super  Role = "Super"
 )
 
+var ValidRoles = []Role{
+	Normal,
+	Admin,
+	Super,
+}
+
 func (r Role) IsOneOf(others ...Role) bool {
 	for _, oth := range others {
 		if r == oth {

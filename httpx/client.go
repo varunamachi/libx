@@ -289,6 +289,7 @@ func (client *Client) Get(gtx context.Context, urlArgs ...string) *ApiResult {
 
 	apiURL := client.createUrl(urlArgs...)
 	req, err := http.NewRequestWithContext(gtx, "GET", apiURL, nil)
+
 	if err != nil {
 		newErrorResult(req, err, "Failed to create http request")
 	}
@@ -344,3 +345,7 @@ func (client *Client) Delete(
 
 	return newApiResult(req, resp)
 }
+
+// type RequestBuilder struct {
+
+// }
