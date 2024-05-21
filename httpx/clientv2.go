@@ -13,48 +13,48 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/varunamachi/libx/data"
 )
 
 var ErrHttpRequestBuildFailed = errors.New("http request build failed")
 
 type RequestBuilder struct {
-	method      string
-	body        any
 	client      *Client
 	headers     http.Header
 	queryParams map[string]string
 	path        string
 	withAuth    bool
-	err         []error
+	errs        []error
 
 	// TODO - now only json is supported, when others are to be supported, we
 	// need a way to specify encoders
 	// contentType string
 }
 
-func newRequestBuilder(client *Client, method string) *RequestBuilder {
+func newRequestBuilder(client *Client) *RequestBuilder {
 	return &RequestBuilder{
-		method:      method,
+		client:      client,
 		headers:     map[string][]string{},
 		queryParams: map[string]string{},
 		path:        "",
 		withAuth:    true,
-		err:         make([]error, 0, 10),
+		errs:        make([]error, 0, 10),
 	}
 }
 
-func newRequestBuilderWithBody(
-	client *Client, method string, body any) *RequestBuilder {
-	return &RequestBuilder{
-		method:      method,
-		body:        body,
-		headers:     map[string][]string{},
-		queryParams: map[string]string{},
-		path:        "",
-		withAuth:    true,
-		err:         make([]error, 0, 10),
-	}
-}
+// func newRequestBuilderWithBody(
+// 	client *Client, method string, body any) *RequestBuilder {
+// 	return &RequestBuilder{
+// 		client:      client,
+// 		method:      method,
+// 		body:        body,
+// 		headers:     map[string][]string{},
+// 		queryParams: map[string]string{},
+// 		path:        "",
+// 		withAuth:    true,
+// 		errs:        make([]error, 0, 10),
+// 	}
+// }
 
 func (rb *RequestBuilder) HdrStr(name, value string) *RequestBuilder {
 	rb.headers.Add(name, value)
@@ -79,12 +79,25 @@ func (rb *RequestBuilder) HdrBool(name string, value bool) *RequestBuilder {
 func (rb *RequestBuilder) HdrJson(name string, value any) *RequestBuilder {
 	j, err := encodeJsonUrl(value)
 	if err != nil {
-		rb.err = append(rb.err, err)
+		rb.errs = append(rb.errs, err)
 		return rb
 	}
 
 	rb.headers.Add(name, j)
 	return rb
+}
+
+func (rb *RequestBuilder) CmnParam(cp *data.CommonParams) *RequestBuilder {
+	return rb.
+		QInt("page", cp.Page).
+		QInt("pageSize", cp.PageSize).
+		QStr("sort", cp.Sort).
+		QBool("sortDesc", cp.SortDescending).
+		Filter(cp.Filter)
+}
+
+func (rb *RequestBuilder) Filter(f *data.Filter) *RequestBuilder {
+	return rb.QJson("filter", f)
 }
 
 func (rb *RequestBuilder) QStr(name, value string) *RequestBuilder {
@@ -110,7 +123,7 @@ func (rb *RequestBuilder) QBool(name string, value bool) *RequestBuilder {
 func (rb *RequestBuilder) QJson(name string, value any) *RequestBuilder {
 	j, err := encodeJsonUrl(value)
 	if err != nil {
-		rb.err = append(rb.err, err)
+		rb.errs = append(rb.errs, err)
 		return rb
 	}
 
@@ -136,12 +149,12 @@ func (rb *RequestBuilder) Path(params ...any) *RequestBuilder {
 		case bool:
 			_, err = sb.WriteString(strconv.FormatBool(p))
 		default:
-			rb.err = append(rb.err,
+			rb.errs = append(rb.errs,
 				fmt.Errorf("invalid param type for path: '%T'", p))
 			return rb
 		}
 		if err != nil {
-			rb.err = append(rb.err, err)
+			rb.errs = append(rb.errs, err)
 			return rb
 		}
 	}
@@ -155,20 +168,21 @@ func (rb *RequestBuilder) WithAuth(useAuth bool) *RequestBuilder {
 }
 
 func (rb *RequestBuilder) Exec(
-	gtx context.Context) (*ApiResult, *RequestBuilder) {
-	if len(rb.err) != 0 {
+	gtx context.Context, method string, body any) *ApiResult {
+	if len(rb.errs) != 0 {
 		return &ApiResult{
-			err:    ErrHttpRequestBuildFailed,
-			target: rb.method + " " + rb.path,
-		}, rb
+			err:            ErrHttpRequestBuildFailed,
+			target:         method + " " + rb.path,
+			reqBuildErrors: rb.errs,
+		}
 	}
 
 	var err error
 	var bodyBytes []byte = nil
-	if rb.body != nil {
-		bodyBytes, err = json.Marshal(rb.body)
+	if body != nil {
+		bodyBytes, err = json.Marshal(body)
 		if err != nil {
-			return newErrorResult(nil, err, "failed to marshal data"), rb
+			return newErrorResult(nil, err, "failed to marshal data")
 		}
 	}
 	// if !strings.HasSuffix(rb.client.contextRoot, "/") {
@@ -177,9 +191,9 @@ func (rb *RequestBuilder) Exec(
 	fullUrl := rb.client.address + path.Clean(rb.client.contextRoot+"/"+rb.path)
 
 	req, err := http.NewRequestWithContext(
-		gtx, rb.method, fullUrl, bytes.NewBuffer(bodyBytes))
+		gtx, method, fullUrl, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		return newErrorResult(req, err, "failed to create http request"), rb
+		return newErrorResult(req, err, "failed to create http request")
 	}
 
 	req.Header = rb.headers
@@ -190,10 +204,30 @@ func (rb *RequestBuilder) Exec(
 
 	resp, err := rb.client.Do(req)
 	if err != nil {
-		return newErrorResult(req, err, "Failed to perform http request"), rb
+		return newErrorResult(req, err, "Failed to perform http request")
 	}
 
-	return newApiResult(req, resp), rb
+	return newApiResult(req, resp)
+}
+
+func (rb *RequestBuilder) Post(gtx context.Context, body any) *ApiResult {
+	return rb.Exec(gtx, echo.POST, body)
+}
+
+func (rb *RequestBuilder) Put(gtx context.Context, body any) *ApiResult {
+	return rb.Exec(gtx, echo.PUT, body)
+}
+
+func (rb *RequestBuilder) Patch(gtx context.Context, body any) *ApiResult {
+	return rb.Exec(gtx, echo.PATCH, body)
+}
+
+func (rb *RequestBuilder) Get(gtx context.Context) *ApiResult {
+	return rb.Exec(gtx, echo.GET, nil)
+}
+
+func (rb *RequestBuilder) Delete(gtx context.Context) *ApiResult {
+	return rb.Exec(gtx, echo.DELETE, nil)
 }
 
 func encodeJsonUrl(obj any) (string, error) {
@@ -205,22 +239,26 @@ func encodeJsonUrl(obj any) (string, error) {
 	return url.PathEscape(string(j)), nil
 }
 
-func (client *Client) BuildPost(body any) *RequestBuilder {
-	return newRequestBuilderWithBody(client, echo.POST, body)
+func (client *Client) Build() *RequestBuilder {
+	return newRequestBuilder(client)
 }
 
-func (client *Client) BuildPut(body any) *RequestBuilder {
-	return newRequestBuilderWithBody(client, echo.PUT, body)
-}
+// func (client *Client) BuildPost(body any) *RequestBuilder {
+// 	return newRequestBuilderWithBody(client, echo.POST, body)
+// }
 
-func (client *Client) BuildPatch(body any) *RequestBuilder {
-	return newRequestBuilderWithBody(client, echo.PATCH, body)
-}
+// func (client *Client) BuildPut(body any) *RequestBuilder {
+// 	return newRequestBuilderWithBody(client, echo.PUT, body)
+// }
 
-func (client *Client) BuildGet() *RequestBuilder {
-	return newRequestBuilder(client, echo.GET)
-}
+// func (client *Client) BuildPatch(body any) *RequestBuilder {
+// 	return newRequestBuilderWithBody(client, echo.PATCH, body)
+// }
 
-func (client *Client) BuildDelete() *RequestBuilder {
-	return newRequestBuilder(client, echo.DELETE)
-}
+// func (client *Client) BuildGet() *RequestBuilder {
+// 	return newRequestBuilder(client, echo.GET)
+// }
+
+// func (client *Client) BuildDelete() *RequestBuilder {
+// 	return newRequestBuilder(client, echo.DELETE)
+// }

@@ -90,9 +90,9 @@ func Str(err error) string {
 	if !ok {
 		return err.Error()
 	}
-	if ex.Code != ex.Err.Error() {
+	// if ex.Code != ex.Err.Error() {
 
-	}
+	// }
 	return fmt.Sprintf("%s:%d - %s", ex.File, ex.Line, ex.Msg)
 }
 

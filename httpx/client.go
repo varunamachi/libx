@@ -35,10 +35,11 @@ var (
 type AuthData map[string]interface{}
 
 type ApiResult struct {
-	resp   *http.Response
-	err    error
-	target string
-	code   int
+	resp           *http.Response
+	err            error
+	reqBuildErrors []error
+	target         string
+	code           int
 }
 
 func newApiResult(req *http.Request, resp *http.Response) *ApiResult {
