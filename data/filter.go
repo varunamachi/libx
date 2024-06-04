@@ -1,5 +1,10 @@
 package data
 
+import (
+	"fmt"
+	"time"
+)
+
 type Validatable interface {
 	IsValid() bool
 }
@@ -25,6 +30,121 @@ func NewFilter() *Filter {
 		Dates:     map[string]*DateRangeMatcher{},
 		Ranges:    map[string]*RangeMatcher{},
 	}
+}
+
+func (f *Filter) Bool(key string, value any) *Filter {
+	_, ok := value.(bool)
+	if value != nil && !ok {
+		panic(fmt.Errorf("invalid bool '%s' given for filter", key))
+	}
+	f.Bools[key] = value
+	return f
+}
+
+func (f *Filter) PropIn(key string, values ...any) *Filter {
+	return f.matcher("prop", f.Props, false, key, values...)
+}
+
+func (f *Filter) PropNotIn(key string, values ...any) *Filter {
+	return f.matcher("prop", f.Props, true, key, values...)
+}
+
+func (f *Filter) ListIn(key string, values ...any) *Filter {
+	return f.matcher("list", f.Lists, false, key, values...)
+}
+
+func (f *Filter) ListNotIn(key string, values ...any) *Filter {
+	return f.matcher("list", f.Lists, true, key, values...)
+}
+
+func (f *Filter) SerachIn(key string, values ...any) *Filter {
+	return f.matcher("search", f.Searches, false, key, values...)
+}
+
+func (f *Filter) SearchNotIn(key string, values ...any) *Filter {
+	return f.matcher("search", f.Searches, true, key, values...)
+}
+
+func (f *Filter) ConstIn(key string, values ...any) *Filter {
+	return f.matcher("const", f.Constants, false, key, values...)
+}
+
+func (f *Filter) ConstNotIn(key string, values ...any) *Filter {
+	return f.matcher("const", f.Constants, true, key, values...)
+}
+
+func (f *Filter) RangeIn(key string, from, to float64) *Filter {
+	rng := RangeMatcher{
+		NumberRange: NumberRange{
+			From: from,
+			To:   to,
+		},
+		Invert: false,
+	}
+	if !rng.IsValid() {
+		panic(fmt.Errorf("invalid range '%f => %f'", from, to))
+	}
+	return f
+}
+
+func (f *Filter) RangeNotIn(key string, from, to float64) *Filter {
+	rng := RangeMatcher{
+		NumberRange: NumberRange{
+			From: from,
+			To:   to,
+		},
+		Invert: true,
+	}
+	if !rng.IsValid() {
+		panic(fmt.Errorf("invalid range '%f => %f'", from, to))
+	}
+	return f
+}
+
+func (f *Filter) DateRangeIn(key string, from, to time.Time) *Filter {
+	rng := DateRangeMatcher{
+		DateRange: DateRange{
+			From: from,
+			To:   to,
+		},
+		Invert: false,
+	}
+	if !rng.IsValid() {
+		panic(fmt.Errorf("invalid range '%v => %v'", from, to))
+	}
+	return f
+}
+
+func (f *Filter) DateRangeNotIn(key string, from, to time.Time) *Filter {
+	rng := DateRangeMatcher{
+		DateRange: DateRange{
+			From: from,
+			To:   to,
+		},
+		Invert: true,
+	}
+	if !rng.IsValid() {
+		panic(fmt.Errorf("invalid range '%v => %v'", from, to))
+	}
+	return f
+}
+
+func (f *Filter) matcher(
+	tp string,
+	mp map[string]*Matcher,
+	invert bool,
+	key string,
+	values ...any) *Filter {
+	// _, ok := value.(bool)
+	// Check value
+	if values != nil {
+		panic(fmt.Errorf("invalid '%s' item '%s' given for filter", tp, key))
+	}
+	mp[key] = &Matcher{
+		Invert: invert,
+		Fields: values,
+	}
+	return f
 }
 
 func IsValid[T Validatable](m map[string]T) bool {

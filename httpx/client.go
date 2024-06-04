@@ -73,7 +73,7 @@ func newApiResult(req *http.Request, resp *http.Response) *ApiResult {
 	if err == nil {
 		return res
 	}
-	if err != nil && resp.Body == nil {
+	if resp.Body == nil {
 		res.err = errx.Errf(err, "%s - %s", resp.Status, target)
 		return res
 	}
