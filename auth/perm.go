@@ -5,12 +5,12 @@ type PermissionTree struct {
 }
 
 type PermissionNode struct {
-	Id         int               `json:"id" db:"id"`
-	PermId     string            `json:"permId" db:"permId"`
-	Name       string            `json:"name" db:"name"`
-	Predefined bool              `json:"predefined" db:"predefined"`
-	Base       string            `json:"base" db:"base"`
-	Children   []*PermissionNode `json:"children"`
+	Id         int    `json:"id" db:"id"`
+	PermId     string `json:"permId" db:"permId"`
+	Name       string `json:"name" db:"name"`
+	Predefined bool   `json:"predefined" db:"predefined"`
+	// Base       string            `json:"base" db:"base"`
+	Children []*PermissionNode `json:"children"`
 }
 
 func (pn *PermissionNode) AddChild(child *PermissionNode) {
