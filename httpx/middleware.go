@@ -94,6 +94,12 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			// 	}
 			// }
 
+			if server.userRetriever == nil {
+				return echo.NewHTTPError(http.StatusInternalServerError,
+					"user retriever not found while handling a controlled "+
+						"endpoint")
+			}
+
 			user, err := server.userRetriever.GetUser(
 				etx.Request().Context(), userId)
 			if err != nil {
