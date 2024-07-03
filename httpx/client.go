@@ -183,7 +183,7 @@ func DefaultTransport() *http.Transport {
 	}
 }
 
-func New(address, contextRoot string) *Client {
+func NewClient(address, contextRoot string) *Client {
 	return &Client{
 		address:     address,
 		contextRoot: contextRoot,
@@ -194,7 +194,7 @@ func New(address, contextRoot string) *Client {
 	}
 }
 
-func NewCustom(
+func NewCustomClient(
 	address, contextRoot string,
 	transport *http.Transport,
 	timeout time.Duration) *Client {

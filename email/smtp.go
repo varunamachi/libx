@@ -86,7 +86,7 @@ func (sp *SmtpProvider) newClient() (*mail.SMTPClient, error) {
 	return client, nil
 }
 
-func NewProviderFromEnv(envPrefix string) (Provider, error) {
+func NewSMTPProviderFromEnv(envPrefix string) (Provider, error) {
 	host := rt.EnvString(envPrefix+"_SMTP_HOST", "")
 	port := rt.EnvInt(envPrefix+"_SMTP_PORT", 0)
 	userName := rt.EnvString(envPrefix+"_SMPT_USER", "")
