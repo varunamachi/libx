@@ -173,6 +173,10 @@ func (s *Server) Close() error {
 }
 
 func SendJSON(etx echo.Context, data interface{}) error {
+
+	// Following is required for flutter client
+	etx.Response().Header().Set(
+		echo.HeaderContentType, "application/json; charset=UTF-8")
 	if err := etx.JSON(http.StatusOK, data); err != nil {
 		log.Error().Err(err).Msg("failed to write JSON response")
 		return err
