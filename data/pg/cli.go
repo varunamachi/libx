@@ -62,11 +62,11 @@ func Wrap(cmd *cli.Command) *cli.Command {
 	)
 
 	if cmd.Before == nil {
-		cmd.Before = requirePostgres
+		cmd.Before = RequirePostgres
 	} else {
 		otherBefore := cmd.Before
 		cmd.Before = func(ctx *cli.Context) (err error) {
-			err = requirePostgres(ctx)
+			err = RequirePostgres(ctx)
 			if err == nil {
 				err = otherBefore(ctx)
 			}
@@ -77,7 +77,7 @@ func Wrap(cmd *cli.Command) *cli.Command {
 	return cmd
 }
 
-func requirePostgres(ctx *cli.Context) error {
+func RequirePostgres(ctx *cli.Context) error {
 	urlStr := ctx.String("pg-url")
 	if urlStr != "" {
 		u, err := url.Parse(urlStr)
