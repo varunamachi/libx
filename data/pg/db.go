@@ -67,6 +67,10 @@ func Connect(
 		return nil, errx.Errf(err, "failed to open postgress connection")
 	}
 
+	if err := db.Ping(); err != nil {
+		return nil, errx.Errf(err, "failed to ping the database")
+	}
+
 	if timeZone != "" {
 		_, err = db.Exec(fmt.Sprintf("SET TIME ZONE '%s'", timeZone))
 		if err != nil {
