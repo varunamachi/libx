@@ -67,7 +67,17 @@ func Connect(
 		return nil, errx.Errf(err, "failed to open postgress connection")
 	}
 
-	if err := db.Ping(); err != nil {
+	retry := 3
+	for retry >= 0 {
+		if err = db.Ping(); err != nil {
+			retry--
+			time.Sleep(time.Second * 1)
+			continue
+		}
+		break
+	}
+
+	if retry < 0 {
 		return nil, errx.Errf(err, "failed to ping the database")
 	}
 
@@ -108,6 +118,16 @@ func ConnectWithOpts(
 	if err != nil {
 		// log.Error().Err(err).Msg("failed to open postgress connection")
 		return nil, errx.Errf(err, "failed to open postgress connection")
+	}
+
+	retry := 3
+	for retry >= 0 {
+		if err = db.Ping(); err != nil {
+			retry--
+			time.Sleep(time.Second * 1)
+			continue
+		}
+		break
 	}
 
 	var dbNow time.Time

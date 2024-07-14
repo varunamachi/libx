@@ -61,7 +61,9 @@ func (cb *CmdBuilder) WithInput(in io.Reader) *CmdBuilder {
 
 func (cb *CmdBuilder) Execute() error {
 	cmd := exec.Command(cb.Cmd, cb.Args...)
-	cmd.Env = append(cmd.Env, cb.Args...)
+	for k, v := range cb.Env {
+		cmd.Env = append(cmd.Env, k+"="+v)
+	}
 	cmd.Stdout = data.Qop(cb.stdout != nil, cb.stdout, io.Writer(os.Stdout))
 	cmd.Stderr = data.Qop(cb.stderr != nil, cb.stderr, io.Writer(os.Stderr))
 	cmd.Stdin = data.Qop(cb.stdin != nil, cb.stdin, io.Reader(os.Stdin))
