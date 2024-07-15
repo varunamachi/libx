@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
+	"github.com/varunamachi/libx/data"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -93,16 +95,18 @@ func (s *Server) configure() {
 			groups[ep.Version] = grp
 		}
 
+		path := data.Qop(
+			strings.HasPrefix(ep.Path, "/"), ep.Path[1:], ep.Path)
 		if ep.NeedsAuth() {
 			ep.Route = grp.Add(
 				ep.Method,
-				ep.Path,
+				path,
 				ep.Handler,
 				getAuthzMiddleware(ep, s))
 
 		} else {
 			ep.Route = grp.Add(
-				ep.Method, ep.Path, ep.Handler)
+				ep.Method, path, ep.Handler)
 		}
 
 		if _, found := s.apiCatg[ep.Category]; !found {
