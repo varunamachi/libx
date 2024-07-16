@@ -11,7 +11,7 @@ func Gtx() (context.Context, context.CancelFunc) {
 
 	gtx, cancel := context.WithCancel(context.Background())
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sigs
 		cancel()

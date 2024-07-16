@@ -97,7 +97,9 @@ func Str(err error) string {
 }
 
 func PrintSomeStack(err error) {
+	fmt.Println()
 	stackPrinter(err, "")
+	fmt.Println()
 }
 
 func stackPrinter(err error, indent string) {
