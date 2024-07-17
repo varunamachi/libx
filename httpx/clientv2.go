@@ -197,6 +197,7 @@ func (rb *RequestBuilder) Exec(
 	}
 
 	req.Header = rb.headers
+	req.Header.Add("Content-Type", "application/json")
 	if rb.withAuth {
 		authHeader := fmt.Sprintf("Bearer %s", rb.client.token)
 		req.Header.Add("Authorization", authHeader)
