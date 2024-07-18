@@ -40,13 +40,14 @@ func (ep *Endpoint) NeedsAuth() bool {
 }
 
 type Server struct {
-	apiCatg       map[string][]*Endpoint
-	pageCatg      map[string][]*Endpoint
-	apiEps        []*Endpoint
-	pageEps       []*Endpoint
-	echo          *echo.Echo
-	printer       io.Writer
-	userRetriever auth.UserRetriever
+	apiCatg         map[string][]*Endpoint
+	pageCatg        map[string][]*Endpoint
+	apiEps          []*Endpoint
+	pageEps         []*Endpoint
+	echo            *echo.Echo
+	printer         io.Writer
+	userRetriever   auth.UserRetriever
+	rootMiddlewares []*echo.MiddlewareFunc
 }
 
 func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
@@ -71,6 +72,11 @@ func (s *Server) WithAPIs(ep ...*Endpoint) *Server {
 
 func (s *Server) WithPages(ep ...*Endpoint) *Server {
 	s.pageEps = append(s.pageEps, ep...)
+	return s
+}
+
+func (s *Server) WithRootMiddlewares(mws ...*echo.MiddlewareFunc) *Server {
+	s.rootMiddlewares = append(s.rootMiddlewares, mws...)
 	return s
 }
 
