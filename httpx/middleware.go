@@ -220,7 +220,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 					Str("user", GetUserId(etx)).
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
-					Msg(err.Error())
+					Msg(errx.Str(err))
 			}
 			return err
 		}

@@ -6,7 +6,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/httpx"
 )
 
@@ -79,15 +78,20 @@ func NewCustomApp(cApp *cli.App) *App {
 	return app
 }
 
-func (app *App) WithServer(port int, userGetter auth.UserRetriever) *App {
-	app.server = httpx.NewServer(os.Stdout, userGetter)
+func (app *App) WithServer(server *httpx.Server) *App {
+	app.server = server
 	return app
 }
 
-func (app *App) WithEndpoints(ep ...*httpx.Endpoint) *App {
-	app.server.WithAPIs(ep...)
-	return app
-}
+// func (app *App) WithServer(port int, userGetter auth.UserRetriever) *App {
+// 	app.server = httpx.NewServer(os.Stdout, userGetter)
+// 	return app
+// }
+
+// func (app *App) WithEndpoints(ep ...*httpx.Endpoint) *App {
+// 	app.server.WithAPIs(ep...)
+// 	return app
+// }
 
 func (app *App) WithCommands(cmds ...*cli.Command) *App {
 	app.Commands = append(app.Commands, cmds...)

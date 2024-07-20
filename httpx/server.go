@@ -47,7 +47,8 @@ type Server struct {
 	echo            *echo.Echo
 	printer         io.Writer
 	userRetriever   auth.UserRetriever
-	rootMiddlewares []*echo.MiddlewareFunc
+	rootMiddlewares []echo.MiddlewareFunc
+	printAllAccess  bool
 }
 
 func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
@@ -75,8 +76,13 @@ func (s *Server) WithPages(ep ...*Endpoint) *Server {
 	return s
 }
 
-func (s *Server) WithRootMiddlewares(mws ...*echo.MiddlewareFunc) *Server {
+func (s *Server) WithRootMiddlewares(mws ...echo.MiddlewareFunc) *Server {
 	s.rootMiddlewares = append(s.rootMiddlewares, mws...)
+	return s
+}
+
+func (s *Server) PrintAllAccess(enable bool) *Server {
+	s.printAllAccess = enable
 	return s
 }
 
@@ -90,7 +96,9 @@ func (s *Server) configure() {
 	s.echo.HTTPErrorHandler = errorHandlerFunc
 	s.echo.HideBanner = true
 	// s.echo.Use(getAccessMiddleware())
-	s.echo.Use(accessMiddleware(false))
+	s.echo.Use(accessMiddleware(s.printAllAccess))
+	s.echo.Use(s.rootMiddlewares...)
+
 	groups := map[string]*echo.Group{}
 
 	for _, ep := range s.apiEps {

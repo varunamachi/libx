@@ -86,6 +86,9 @@ func New(code, msg string) *Error {
 }
 
 func Str(err error) string {
+	if err == nil {
+		return ""
+	}
 	ex, ok := err.(*Error)
 	if !ok {
 		return err.Error()
