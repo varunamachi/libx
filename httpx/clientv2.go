@@ -11,6 +11,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/varunamachi/libx/data"
@@ -25,6 +26,7 @@ type RequestBuilder struct {
 	path        string
 	withAuth    bool
 	errs        []error
+	timeout     time.Duration
 
 	// TODO - now only json is supported, when others are to be supported, we
 	// need a way to specify encoders
@@ -167,6 +169,11 @@ func (rb *RequestBuilder) WithAuth(useAuth bool) *RequestBuilder {
 	return rb
 }
 
+func (rb *RequestBuilder) WithTimeout(duration time.Duration) *RequestBuilder {
+	rb.timeout = duration
+	return rb
+}
+
 func (rb *RequestBuilder) Exec(
 	gtx context.Context, method string, body any) *ApiResult {
 	if len(rb.errs) != 0 {
@@ -190,6 +197,11 @@ func (rb *RequestBuilder) Exec(
 	// }
 	fullUrl := rb.client.address + path.Clean(rb.client.contextRoot+"/"+rb.path)
 
+	if rb.timeout.Seconds() != 0 {
+		var cancel context.CancelFunc
+		gtx, cancel = context.WithTimeout(gtx, rb.timeout)
+		defer cancel()
+	}
 	req, err := http.NewRequestWithContext(
 		gtx, method, fullUrl, bytes.NewBuffer(bodyBytes))
 	if err != nil {

@@ -214,7 +214,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 					Msg("-- OK --")
 				return nil
 			}
-			if printErrors {
+			if printErrors && err != nil {
 				log.Error().
 					Int("statusCode", http.StatusInternalServerError).
 					Str("user", GetUserId(etx)).
