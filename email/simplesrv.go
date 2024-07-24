@@ -2,6 +2,7 @@ package email
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/varunamachi/libx/errx"
@@ -16,11 +17,13 @@ type SimpleServiceClient struct {
 
 func (ssc *SimpleServiceClient) Send(md *Message, html bool) error {
 
-	res := httpx.NewClient(ssc.sendUrl.String(), "").
+	baseUrl := fmt.Sprintf("%s://%s", ssc.sendUrl.Scheme, ssc.sendUrl.Host)
+
+	res := httpx.NewClient(baseUrl, "").
 		Build().
 		Path(ssc.sendUrl.Path).
 		QBool("html", html).
-		Post(context.TODO(), html)
+		Post(context.TODO(), md)
 	if err := res.Close(); err != nil {
 		return err
 	}

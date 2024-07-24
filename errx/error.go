@@ -3,6 +3,7 @@ package errx
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
 )
 
@@ -55,6 +56,23 @@ func Errf(inner error, msg string, args ...interface{}) *Error {
 		Err:  inner,
 		Code: inner.Error(),
 		Msg:  msg,
+		File: file,
+		Line: line,
+	}
+}
+
+func Wrap(inner error) *Error {
+	if inner == nil {
+		return nil
+	}
+
+	errName := reflect.TypeOf(inner).String()
+	_, file, line, _ := runtime.Caller(1)
+
+	return &Error{
+		Err:  inner,
+		Code: inner.Error(),
+		Msg:  "A error: " + errName,
 		File: file,
 		Line: line,
 	}
