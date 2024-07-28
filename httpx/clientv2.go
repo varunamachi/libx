@@ -136,8 +136,7 @@ func (rb *RequestBuilder) QJson(name string, value any) *RequestBuilder {
 func (rb *RequestBuilder) Path(params ...any) *RequestBuilder {
 	var sb strings.Builder
 	var err error
-	for _, param := range params {
-		sb.WriteString("/")
+	for idx, param := range params {
 		switch p := param.(type) {
 		case int8, int16, int32, int64, int:
 			_, err = sb.WriteString(strconv.FormatInt(p.(int64), 10))
@@ -155,6 +154,11 @@ func (rb *RequestBuilder) Path(params ...any) *RequestBuilder {
 				fmt.Errorf("invalid param type for path: '%T'", p))
 			return rb
 		}
+
+		if idx != len(params)-2 {
+			sb.WriteString("/")
+		}
+
 		if err != nil {
 			rb.errs = append(rb.errs, err)
 			return rb

@@ -19,7 +19,7 @@ const (
 
 type (
 	AuthData        map[string]interface{}
-	userAndPassword struct {
+	UserAndPassword struct {
 		UserId   string `json:"userId"`
 		Password string `json:"password"`
 	}
@@ -32,15 +32,15 @@ func (ad AuthData) Decode(out any) error {
 	return nil
 }
 
-func (ad AuthData) ToUserAndPassword() (
-	userId string, password string, err error) {
+// func (ad AuthData) ToUserAndPassword() (
+// 	userId string, password string, err error) {
 
-	var up userAndPassword
-	if err := ad.Decode(&up); err != nil {
-		return "", "", err
-	}
-	return up.UserId, up.Password, nil
-}
+// 	var up UserAndPassword
+// 	if err := ad.Decode(&up); err != nil {
+// 		return "", "", err
+// 	}
+// 	return up.UserId, up.Password, nil
+// }
 
 var (
 	ErrAuthentication         = errors.New("auth.user.authenticationError")
