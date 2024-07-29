@@ -89,12 +89,17 @@ func (s *Server) PrintAllAccess(enable bool) *Server {
 func (s *Server) Start(port uint32) error {
 	s.configure()
 	s.Print()
-	return s.echo.Start(fmt.Sprintf(":%d", port))
+	if err := s.echo.Start(fmt.Sprintf(":%d", port)); err != nil {
+		return err
+	}
+	log.Info().Uint32("port", port).Msg("server started")
+	return nil
 }
 
 func (s *Server) configure() {
 	s.echo.HTTPErrorHandler = errorHandlerFunc
 	s.echo.HideBanner = true
+	s.echo.HidePort = true
 	// s.echo.Use(getAccessMiddleware())
 	s.echo.Use(accessMiddleware(s.printAllAccess))
 	s.echo.Use(s.rootMiddlewares...)
