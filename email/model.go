@@ -3,6 +3,7 @@ package email
 import (
 	"errors"
 
+	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/rt"
 	"github.com/varunamachi/libx/str"
@@ -21,7 +22,7 @@ type Message struct {
 	Bcc        []string
 	Attachment []*mail.File // chnage to custom type if required
 	Content    string
-	Data       any
+	Data       data.M
 }
 
 func (m *Message) SetContent(td *str.TemplateDesc) error {

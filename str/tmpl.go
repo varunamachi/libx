@@ -11,7 +11,7 @@ import (
 
 type TemplateDesc struct {
 	Template string
-	Data     any
+	Data     map[string]interface{}
 	Funcs    map[string]any
 	Html     bool
 }

@@ -78,6 +78,17 @@ func Wrap(inner error) *Error {
 	}
 }
 
+func Todo(emsg string) *Error {
+	_, file, line, _ := runtime.Caller(1)
+	return &Error{
+		Err:  nil,
+		Code: "TODO",
+		Msg:  "TODO: " + emsg,
+		File: file,
+		Line: line,
+	}
+}
+
 func Errfx(inner error, code, msg string, args ...interface{}) *Error {
 	_, file, line, _ := runtime.Caller(1)
 	if len(args) > 0 {
