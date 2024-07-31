@@ -61,13 +61,13 @@ func (fp *FakeEmailProvider) Send(msg *Message, html bool) error {
 	fp.Lock()
 	defer fp.Unlock()
 	for _, to := range msg.To {
-		get(to).To[to] = msg
+		get(to).To[msg.Id] = msg
 	}
 	for _, cc := range msg.Cc {
-		get(cc).Cc[cc] = msg
+		get(cc).Cc[msg.Id] = msg
 	}
 	for _, bcc := range msg.Bcc {
-		get(bcc).Bcc[bcc] = msg
+		get(bcc).Bcc[msg.Id] = msg
 	}
 
 	return nil
@@ -78,7 +78,8 @@ func (fp *FakeEmailProvider) Get(user, messageId string) (*Message, error) {
 	um, found := fp.mails[user]
 	if !found {
 		return nil,
-			errx.Errf(ErrNoMailsForUser, "user '%s' does not have any mails")
+			errx.Errf(ErrNoMailsForUser, "user '%s' does not have any mails",
+				user)
 	}
 	msg := um.To[messageId]
 	if msg == nil {
