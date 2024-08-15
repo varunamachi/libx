@@ -18,6 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
+	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 )
 
@@ -74,27 +75,44 @@ func newApiResult(req *http.Request, resp *http.Response) *ApiResult {
 		return res
 	}
 	if resp.Body == nil {
-		res.err = errx.Errf(err, "%s - %s", resp.Status, target)
+		res.err = errx.Errf(err, "%s - %s - No body", resp.Status, target)
 		return res
 	}
 
 	defer resp.Body.Close()
 	msg := ""
 
+	bbytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		msg = "failed to get error message: " + err.Error()
+	} else {
+		errMap := map[string]string{}
+		reader := bytes.NewReader(bbytes)
+		if err := json.NewDecoder(reader).Decode(&errMap); err != nil {
+			msg = "unknown error: " + string(bbytes)
+		} else {
+			msg = errMap["msg"]
+			msg = data.Qop(msg == "", string(bbytes), msg)
+		}
+	}
+	// err =
+	res.err = errx.Errf(ErrClientError, "%s - %s", resp.Status, msg)
+	return res
+
 	// First we check if this is in the form of echo.HttpError, if so we try to
 	// get the internal error. If not we try to read the entire body as message
-	var he echo.HTTPError
-	if json.NewDecoder(resp.Body).Decode(&he) != nil {
-		data, err := io.ReadAll(resp.Body)
-		if err == nil {
-			msg = string(data)
-		}
-	} else {
-		msg = he.Error()
-	}
-	err = errx.Errf(err, "%s - %s - %s", resp.Status, target, msg)
-	res.err = err
-	return res
+	// var he echo.HTTPError
+	// if json.NewDecoder(resp.Body).Decode(&he) != nil {
+	// 	data, err := io.ReadAll(resp.Body)
+	// 	if err == nil {
+	// 		msg = string(data)
+	// 	}
+	// } else {
+	// 	msg = he.Error()
+	// }
+	// err = errx.Errf(err, "%s - %s - %s", resp.Status, target, msg)
+	// res.err = err
+	// return res
 }
 
 func newErrorResult(req *http.Request, err error, msg string) *ApiResult {

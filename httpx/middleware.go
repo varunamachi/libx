@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
-	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/rt"
 )
@@ -229,7 +228,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 
 func errorHandlerFunc(err error, etx echo.Context) {
 	asJson := func(status int, code, msg string) {
-		hm := data.M{
+		hm := map[string]string{
 			"status":    http.StatusText(status),
 			"errorCode": code,
 			"msg":       msg,
