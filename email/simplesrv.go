@@ -25,7 +25,7 @@ func (ssc *SimpleServiceClient) Send(md *Message, html bool) error {
 		QBool("html", html).
 		Post(context.TODO(), md)
 	if err := res.Close(); err != nil {
-		return err
+		return errx.Errf(err, "failed to send request to send mail")
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func NewSimpleMailSrvClinetFromEnv(envPrefix string) (Provider, error) {
 	urlStr := rt.EnvString(envPrefix+"_SIMPLE_SRV_SEND_URL", "")
 	sendUrl, err := url.Parse(urlStr)
 	if err != nil {
-		return nil, errx.Errf(err, "failed to parse send URL from ")
+		return nil, errx.Errf(err, "failed to parse send URL from env")
 	}
 	return &SimpleServiceClient{
 		sendUrl: sendUrl,

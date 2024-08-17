@@ -56,7 +56,7 @@ func (sp *SmtpProvider) Send(mailDesc *Message, html bool) error {
 
 	client, err := sp.newClient()
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	if err := m.Send(client); err != nil {
 		return errx.Errf(err, "failed to send email")

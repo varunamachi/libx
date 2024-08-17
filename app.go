@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/httpx"
 )
 
@@ -117,7 +118,7 @@ func (app *App) StopServer() error {
 		return nil
 	}
 	if err := app.server.Close(); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	app.server = nil
 	return nil

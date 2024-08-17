@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/auth"
 	"github.com/varunamachi/libx/data"
+	"github.com/varunamachi/libx/errx"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -90,7 +91,7 @@ func (s *Server) Start(port uint32) error {
 	s.configure()
 	s.Print()
 	if err := s.echo.Start(fmt.Sprintf(":%d", port)); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	log.Info().Uint32("port", port).Msg("server started")
 	return nil
@@ -156,37 +157,41 @@ func (s *Server) configure() {
 }
 
 func (s *Server) Print() {
-	// for _, ep := range s.apiEps {
-	// 	cat := ep.Category
-	// 	if len(cat) > 14 {
-	// 		cat = ep.Category[:14]
-	// 	}
-	// 	fmt.Fprintf(s.printer,
-	// 		"%-3s %-5s %-40s %-15s %s\n",
-	// 		ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
-	// }
-	// fmt.Print("\n\n")
-
 	caser := cases.Upper(language.English)
 	for cat, eps := range s.apiCatg {
 		fmt.Fprintln(s.printer, caser.String(cat))
-		for _, ep := range eps {
+		for idx, ep := range eps {
+
+			sym := "\u251c"
+			if idx == len(eps)-1 {
+				sym = "\u2514"
+			}
+
 			fmt.Fprintf(s.printer,
-				" |-- %-3s %-5s %-60s %s\n",
-				ep.Version, ep.Route.Method, ep.Route.Path, ep.Desc)
+				" %s\u2500 %-3s %-10s %-60s %s\n",
+				sym, ep.Version, ep.Route.Method, ep.Route.Path, ep.Desc)
 		}
 		fmt.Fprintln(s.printer)
 	}
-	fmt.Fprintln(s.printer, "\nPAGES:")
-	for _, ep := range s.pageEps {
-		cat := ep.Category
-		if len(cat) > 14 {
-			cat = ep.Category[:14]
-		}
 
-		fmt.Fprintf(s.printer,
-			" |-- %-3s %-5s %-60s %-15s %s\n",
-			ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
+	if len(s.pageEps) != 0 {
+
+		fmt.Fprintln(s.printer, "\nPAGES:")
+		for idx, ep := range s.pageEps {
+			cat := ep.Category
+			if len(cat) > 14 {
+				cat = ep.Category[:14]
+			}
+
+			sym := "\u251c"
+			if idx == len(s.pageEps)-2 {
+				sym = "\u2514"
+			}
+
+			fmt.Fprintf(s.printer,
+				" %s\u2500 %-3s %-10s %-60s %-15s %s\n",
+				sym, ep.Version, ep.Route.Method, ep.Route.Path, cat, ep.Desc)
+		}
 	}
 	fmt.Fprintln(s.printer, "")
 }
@@ -202,7 +207,7 @@ func SendJSON(etx echo.Context, data interface{}) error {
 		echo.HeaderContentType, "application/json; charset=UTF-8")
 	if err := etx.JSON(http.StatusOK, data); err != nil {
 		log.Error().Err(err).Msg("failed to write JSON response")
-		return err
+		return errx.Wrap(err)
 	}
 	return nil
 }

@@ -102,7 +102,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			user, err := server.userRetriever.GetUser(
 				etx.Request().Context(), userId)
 			if err != nil {
-				return err
+				return errx.Wrap(err)
 			}
 
 			hasAccess := auth.HasPerms(user, ep.Permissions...) &&
@@ -171,12 +171,12 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 // 			}
 
 // 			if printIfInternal(http.StatusInternalServerError, err) {
-// 				return err
+// 				return errx.Wrap(err)
 // 			}
 
 // 			httpErr, ok := err.(*echo.HTTPError)
 // 			if ok && printIfInternal(httpErr.Code, httpErr.Internal) {
-// 				return err
+// 				return errx.Wrap(err)
 // 			}
 // 			if ok {
 // 				log.Error().
@@ -194,7 +194,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 // 				Str("method", etx.Request().Method).
 // 				Str("path", etx.Request().URL.Path).
 // 				Msg(err.Error())
-// 			return err
+// 			return errx.Wrap(err)
 // 		}
 // 	}
 // }
@@ -254,6 +254,10 @@ func errorHandlerFunc(err error, etx echo.Context) {
 		errx.PrintSomeStack(irr)
 		asJson(status, irr.Code, irr.Msg)
 		return true
+	}
+
+	if err == nil {
+		return
 	}
 
 	if printIfInternal(http.StatusInternalServerError, err) {

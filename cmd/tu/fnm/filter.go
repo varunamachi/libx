@@ -17,7 +17,7 @@ func GetDataForRandomFilter(
 	out any) error {
 	filter, err := GenerateRandomFilter(gtx, dataType)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	cp := data.CommonParams{

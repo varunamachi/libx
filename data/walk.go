@@ -257,7 +257,7 @@ func walkRecursive(config *WalkConfig, state WalkerState) {
 func Get(obj any, out any, path ...string) error {
 	val, err := WalkPath(obj, path...)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	if !val.IsValid() {
@@ -277,7 +277,7 @@ func Get(obj any, out any, path ...string) error {
 func Set(obj any, newVal any, path ...string) error {
 	val, err := WalkPath(obj, path...)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	if !val.IsValid() {

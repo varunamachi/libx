@@ -79,7 +79,7 @@ func EncryptToFile(reader io.Reader, path, password string) error {
 	c := NewCryptor(password)
 	out, err := c.Encrypt(in)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	if err = os.WriteFile(path, out, 0700); err != nil {
@@ -98,7 +98,7 @@ func DecryptFromFile(path, password string, writer io.Writer) error {
 	c := NewCryptor(password)
 	out, err := c.Decrypt(in)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	if _, err = writer.Write(out); err != nil {

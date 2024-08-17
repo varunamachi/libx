@@ -31,7 +31,7 @@ func N3[T1, T2, T3 any](a1 T1, a2 T2, a3 T3) *Triad[T1, T2, T3] {
 func Call(funcs ...func() error) error {
 	for _, fn := range funcs {
 		if err := fn(); err != nil {
-			return err
+			return errx.Wrap(err)
 		}
 	}
 	return nil

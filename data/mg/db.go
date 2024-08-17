@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/varunamachi/libx/errx"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -54,7 +55,7 @@ func Connect(gtx context.Context, uri string, defaultDB string) error {
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(gtx, clientOpts)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	mongoStore = &store{

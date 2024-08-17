@@ -39,22 +39,22 @@ var faker = gofakeit.New(39434)
 
 func PgCreateFill(gtx context.Context) error {
 	if err := createSchema(gtx); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	log.Info().Msg("schema created successfully")
 
 	if err := clearData(gtx); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	log.Info().Msg("data cleared from all tables")
 
 	if err := fillUserInfo(gtx); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	log.Info().Msg("fake user information created")
 
 	if err := fillItemInfo(gtx); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	log.Info().Msg("fake item data created")
 

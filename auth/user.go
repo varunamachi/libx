@@ -27,6 +27,10 @@ func (r Role) IsOneOf(others ...Role) bool {
 }
 
 func (r Role) EqualOrAbove(another Role) bool {
+	if another == "" {
+		return true
+	}
+
 	switch r {
 	case None:
 		return another == None
@@ -57,6 +61,10 @@ func HasRole(u User, role Role) bool {
 }
 
 func HasPerms(u User, permIds ...string) bool {
+	if u.Role() == Super {
+		// Super user will be the initial user and will need all permissions
+		return true
+	}
 	for _, perm := range permIds {
 		if !u.Permissions().HasPerm(perm) {
 			return false

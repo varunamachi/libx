@@ -70,7 +70,7 @@ func Wrap(cmd *cli.Command) *cli.Command {
 			if err == nil {
 				err = otherBefore(ctx)
 			}
-			return err
+			return errx.Wrap(err)
 		}
 	}
 
@@ -88,7 +88,7 @@ func RequirePostgres(ctx *cli.Context) error {
 		db, err := Connect(ctx.Context, u, ctx.String("pg-timezone"))
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
-			return err
+			return errx.Wrap(err)
 		}
 		SetDefaultConn(db)
 	} else {
@@ -102,7 +102,7 @@ func RequirePostgres(ctx *cli.Context) error {
 		})
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to connect to database")
-			return err
+			return errx.Wrap(err)
 		}
 		SetDefaultConn(db)
 	}

@@ -155,7 +155,7 @@ func (rb *RequestBuilder) Path(params ...any) *RequestBuilder {
 			return rb
 		}
 
-		if idx != len(params)-2 {
+		if idx != len(params)-1 {
 			sb.WriteString("/")
 		}
 

@@ -28,7 +28,7 @@ type Message struct {
 func (m *Message) SetContent(td *str.TemplateDesc) error {
 	c, err := str.SimpleTemplateExpand(td)
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	m.Content = c
 	m.Data = td.Data

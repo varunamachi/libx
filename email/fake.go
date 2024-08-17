@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/varunamachi/libx/errx"
+	"github.com/varunamachi/libx/iox"
 )
 
 // Stores emails in a map
@@ -48,12 +49,17 @@ func NewFakeEmailProvider() *FakeEmailProvider {
 	}
 }
 
+func (fp *FakeEmailProvider) Print() {
+	iox.PrintJSON(fp.mails)
+}
+
 func (fp *FakeEmailProvider) Send(msg *Message, html bool) error {
 
 	get := func(name string) *userMails {
 		um := fp.mails[name]
 		if um == nil {
 			um = newUserMails(name)
+			fp.mails[name] = um
 		}
 		return um
 	}

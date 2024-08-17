@@ -50,7 +50,7 @@ func printFilterValues() *cli.Command {
 			fval, err := pg.GetFilterValues(
 				ctx.Context, ctx.String("data-type"), UserFilterSpec, nil)
 			if err != nil {
-				return err
+				return errx.Wrap(err)
 			}
 
 			iox.PrintJSON(fval)
@@ -85,7 +85,7 @@ func createAndApplyRandomFilter() *cli.Command {
 				ctx.String("data-type"),
 				out)
 			if err != nil {
-				return err
+				return errx.Wrap(err)
 			}
 
 			iox.PrintJSON(out)

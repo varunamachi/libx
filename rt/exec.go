@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/varunamachi/libx/data"
+	"github.com/varunamachi/libx/errx"
 )
 
 // TODO - add way to start command in background
@@ -73,7 +74,7 @@ func (cb *CmdBuilder) Command() *exec.Cmd {
 func (cb *CmdBuilder) Run() error {
 	cmd := cb.Command()
 	if err := cmd.Run(); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	return nil
 }

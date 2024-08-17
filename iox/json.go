@@ -11,7 +11,7 @@ import (
 	"github.com/varunamachi/libx/errx"
 )
 
-//PrintJSON - dumps JSON representation of given data to stdout
+// PrintJSON - dumps JSON representation of given data to stdout
 func PrintJSON(o interface{}) {
 	b, err := json.MarshalIndent(o, "", "    ")
 	if err != nil {
@@ -22,11 +22,11 @@ func PrintJSON(o interface{}) {
 	fmt.Println(string(b))
 }
 
-//WriteJSON - writes JSON representation of given data to given writer
+// WriteJSON - writes JSON representation of given data to given writer
 func WriteJSON(writer io.Writer, o interface{}) error {
 	b, err := json.MarshalIndent(o, "", "    ")
 	if err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 
 	fmt.Fprintln(writer, string(b))
@@ -38,13 +38,13 @@ func WriteJSONFile(
 	file, err := CreateFile(path, conflictPolicy)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create JSON file")
-		return err
+		return errx.Wrap(err)
 	}
 	defer file.Close()
 
 	if err := WriteJSON(file, data); err != nil {
 		log.Error().Err(err).Msg("failed to write JSON content to file")
-		return err
+		return errx.Wrap(err)
 	}
 
 	return nil
@@ -58,7 +58,7 @@ func LoadJsonFile(path string, out interface{}) error {
 		return errx.Errf(err, "failed to open JSON file at %s", path)
 	}
 	if err = LoadJson(reader, out); err != nil {
-		return err
+		return errx.Wrap(err)
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ func LoadJson(reader io.Reader, out interface{}) error {
 	return nil
 }
 
-//FormattedJSON - converts given data to JSON and returns as pretty printed
+// FormattedJSON - converts given data to JSON and returns as pretty printed
 func FormattedJSON(o interface{}) (string, error) {
 	b, err := json.MarshalIndent(o, "", "    ")
 	if err != nil {
