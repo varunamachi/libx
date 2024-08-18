@@ -207,7 +207,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 			if logAll && err == nil {
 				log.Info().
 					Int("statusCode", etx.Response().Status).
-					Str("user", GetUserId(etx)).
+					Str("user", GetUsername(etx)).
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
 					Msg("-- OK --")
@@ -216,7 +216,7 @@ func accessMiddleware(printErrors bool) echo.MiddlewareFunc {
 			if printErrors && err != nil {
 				log.Error().
 					Int("statusCode", http.StatusInternalServerError).
-					Str("user", GetUserId(etx)).
+					Str("user", GetUsername(etx)).
 					Str("method", etx.Request().Method).
 					Str("path", etx.Request().URL.Path).
 					Msg(errx.Str(err))
@@ -247,7 +247,7 @@ func errorHandlerFunc(err error, etx echo.Context) {
 			Int("statusCode", status).
 			Str("file", irr.File).
 			Int("line", irr.Line).
-			Str("user", GetUserId(etx)).
+			Str("user", GetUsername(etx)).
 			Str("method", etx.Request().Method).
 			Str("path", etx.Request().URL.Path).
 			Msg(irr.Msg)
@@ -272,7 +272,7 @@ func errorHandlerFunc(err error, etx echo.Context) {
 		msg := StrMsg(httpErr)
 		log.Error().
 			Int("statusCode", httpErr.Code).
-			Str("user", GetUserId(etx)).
+			Str("user", GetUsername(etx)).
 			Str("method", etx.Request().Method).
 			Str("path", etx.Request().URL.Path).
 			Msg(msg)
@@ -282,7 +282,7 @@ func errorHandlerFunc(err error, etx echo.Context) {
 
 	log.Error().
 		Int("statusCode", http.StatusInternalServerError).
-		Str("user", GetUserId(etx)).
+		Str("user", GetUsername(etx)).
 		Str("method", etx.Request().Method).
 		Str("path", etx.Request().URL.Path).
 		Msg(err.Error())

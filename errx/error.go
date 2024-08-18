@@ -172,25 +172,6 @@ func stackPrinter(err error, first bool, idx int) {
 	fmt.Printf("\u2514%s\u2BC8 %v\n", indent, err.Error())
 }
 
-// func PrintSomeStack(err error) {
-// 	fmt.Println()
-// 	stackPrinter(err, "")
-// 	fmt.Println()
-// }
-
-// func stackPrinter(err error, indent string) {
-// 	if err == nil {
-// 		return
-// 	}
-// 	ex, ok := err.(*Error)
-// 	if ok {
-// 		fmt.Printf("%s> %s:%d - %s\n", indent, ex.File, ex.Line, ex.Msg)
-// 		stackPrinter(ex.Err, indent+"--")
-// 		return
-// 	}
-// 	fmt.Printf("%s> %v\n", indent, err)
-// }
-
 func StackArray(err error) []string {
 	const maxDepth = 5
 	errs := make([]string, 0, maxDepth)

@@ -20,7 +20,7 @@ const (
 type (
 	AuthData        map[string]interface{}
 	UserAndPassword struct {
-		UserId   string `json:"userId"`
+		Username string `json:"userId"`
 		Password string `json:"password"`
 	}
 )

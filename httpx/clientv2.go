@@ -26,8 +26,8 @@ type RequestBuilder struct {
 	path        string
 	withAuth    bool
 	errs        []error
-	timeout     time.Duration
 
+	// timeout     time.Duration
 	// TODO - now only json is supported, when others are to be supported, we
 	// need a way to specify encoders
 	// contentType string
@@ -174,7 +174,8 @@ func (rb *RequestBuilder) WithAuth(useAuth bool) *RequestBuilder {
 }
 
 func (rb *RequestBuilder) WithTimeout(duration time.Duration) *RequestBuilder {
-	rb.timeout = duration
+	rb.client.Timeout = duration
+	// rb.timeout = duration
 	return rb
 }
 
@@ -201,13 +202,14 @@ func (rb *RequestBuilder) Exec(
 	// }
 	fullUrl := rb.client.address + path.Clean(rb.client.contextRoot+"/"+rb.path)
 
-	if rb.timeout.Seconds() != 0 {
-		var cancel context.CancelFunc
-		gtx, cancel = context.WithTimeout(gtx, rb.timeout)
-		defer cancel()
-	}
+	// if rb.timeout.Seconds() != 0 {
+	// 	var cancel context.CancelFunc
+	// 	gtx, cancel = context.WithTimeout(gtx, rb.timeout)
+	// 	defer cancel()
+	// }
 	req, err := http.NewRequestWithContext(
 		gtx, method, fullUrl, bytes.NewBuffer(bodyBytes))
+
 	if err != nil {
 		return newErrorResult(req, err, "failed to create http request")
 	}

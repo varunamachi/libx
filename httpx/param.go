@@ -308,7 +308,7 @@ func MustGetUser(etx echo.Context) auth.User {
 	return user
 }
 
-func GetUserId(etx echo.Context) string {
+func GetUsername(etx echo.Context) string {
 	ido := etx.Get("userId")
 	if id, ok := ido.(string); ok {
 		return id
@@ -319,7 +319,7 @@ func GetUserId(etx echo.Context) string {
 	if !ok {
 		return ""
 	}
-	return user.Id()
+	return user.Username()
 }
 
 func GetUser[T auth.User](gtx context.Context) T {

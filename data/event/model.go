@@ -58,7 +58,7 @@ type Event struct {
 	Id        uint64           `json:"id" db:"id" bson:"id"`
 	Op        string           `json:"op" db:"op" bson:"op"`
 	Type      Type             `json:"type" db:"ev_type" bson:"type"`
-	UserId    string           `json:"userId" db:"user_id" bson:"userId"`
+	UserId    int64            `json:"userId" db:"user_id" bson:"userId"`
 	CreatedOn time.Time        `json:"createdOn" db:"created_on" bson:"createdOn"`
 	Errors    data.Vec[string] `json:"errors" db:"errors" bson:"errors"`
 	Metadata  data.M           `json:"metadata" db:"metadata" bson:"metadata"`
@@ -77,7 +77,8 @@ type Adder struct {
 func NewAdder(
 	gtx context.Context,
 	service Service,
-	op, userId string,
+	op string,
+	userId int64,
 	md data.M) *Adder {
 
 	return &Adder{
@@ -113,7 +114,7 @@ func (adder *Adder) AddData(name string, md any) *Adder {
 	return adder
 }
 
-func (adder *Adder) SetUser(userId string) *Adder {
+func (adder *Adder) SetUser(userId int64) *Adder {
 	adder.event.UserId = userId
 	return adder
 }
