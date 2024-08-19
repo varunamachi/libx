@@ -301,7 +301,11 @@ func (client *Client) putOrPost(
 	if err != nil {
 		return newErrorResult(req, err, "failed to perform http request")
 	}
-	return newApiResult(req, resp)
+	r := newApiResult(req, resp)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func (client *Client) Get(gtx context.Context, urlArgs ...string) *ApiResult {
@@ -324,7 +328,11 @@ func (client *Client) Get(gtx context.Context, urlArgs ...string) *ApiResult {
 		return newErrorResult(req, err, "Failed to perform http request")
 	}
 
-	return newApiResult(req, resp)
+	r := newApiResult(req, resp)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func (client *Client) Post(
@@ -362,7 +370,11 @@ func (client *Client) Delete(
 		return newErrorResult(req, err, "Failed to perform http request")
 	}
 
-	return newApiResult(req, resp)
+	r := newApiResult(req, resp)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 // type RequestBuilder struct {

@@ -15,6 +15,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/varunamachi/libx/data"
+	"github.com/varunamachi/libx/errx"
 )
 
 var ErrHttpRequestBuildFailed = errors.New("http request build failed")
@@ -216,6 +217,9 @@ func (rb *RequestBuilder) Exec(
 
 	req.Header = rb.headers
 	req.Header.Add("Content-Type", "application/json")
+	if rb.client.token == "" {
+		req.Header.Add("Authorization", "Bearer "+rb.client.token)
+	}
 	if rb.withAuth {
 		authHeader := fmt.Sprintf("Bearer %s", rb.client.token)
 		req.Header.Add("Authorization", authHeader)
@@ -230,7 +234,11 @@ func (rb *RequestBuilder) Exec(
 }
 
 func (rb *RequestBuilder) Post(gtx context.Context, body any) *ApiResult {
-	return rb.Exec(gtx, echo.POST, body)
+	r := rb.Exec(gtx, echo.POST, body)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func (rb *RequestBuilder) Put(gtx context.Context, body any) *ApiResult {
@@ -238,15 +246,27 @@ func (rb *RequestBuilder) Put(gtx context.Context, body any) *ApiResult {
 }
 
 func (rb *RequestBuilder) Patch(gtx context.Context, body any) *ApiResult {
-	return rb.Exec(gtx, echo.PATCH, body)
+	r := rb.Exec(gtx, echo.PATCH, body)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func (rb *RequestBuilder) Get(gtx context.Context) *ApiResult {
-	return rb.Exec(gtx, echo.GET, nil)
+	r := rb.Exec(gtx, echo.GET, nil)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func (rb *RequestBuilder) Delete(gtx context.Context) *ApiResult {
-	return rb.Exec(gtx, echo.DELETE, nil)
+	r := rb.Exec(gtx, echo.DELETE, nil)
+	if r.err != nil {
+		r.err = errx.Wrap(r.err)
+	}
+	return r
 }
 
 func encodeJsonUrl(obj any) (string, error) {

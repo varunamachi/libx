@@ -55,7 +55,7 @@ func retrieveUserId(ctx echo.Context) (string, string, error) {
 		return "", "", errx.New("jwt.invalidClaims", "invalid claims in JWT")
 	}
 
-	userId, ok := claims["userId"].(string)
+	userId, ok := claims["username"].(string)
 	if !ok {
 		return "", "", errx.New("jwt.invalidUserId",
 			"couldnt find userId in token")

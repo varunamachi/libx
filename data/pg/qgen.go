@@ -84,7 +84,7 @@ func (pgd *getterDeleter) GetOne(
 		return errx.Errf(err, "failed to build sql query")
 	}
 	if err = defDB.GetContext(gtx, data, query, args...); err != nil {
-		return errx.Errf(err, "failed to delete from %s", dataType)
+		return errx.Errf(err, "failed to get item from '%s'", dataType)
 	}
 
 	return nil
