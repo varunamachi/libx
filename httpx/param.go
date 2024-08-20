@@ -325,9 +325,10 @@ func GetUsername(etx echo.Context) string {
 func GetUser[T auth.User](gtx context.Context) T {
 	val := gtx.Value(UserKey)
 	if val == nil {
-		log.Warn().Msg("user not in context")
+		// log.Warn().Msg("user not in context")
 		var t T
 		return t
+
 	}
 
 	user, ok := val.(T)
