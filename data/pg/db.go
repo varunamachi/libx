@@ -61,6 +61,7 @@ func Connect(
 	if err := netx.WaitForPorts(gtx, url.Host, 60*time.Second); err != nil {
 		return nil, err
 	}
+	time.Sleep(1 * time.Second)
 	db, err := sqlx.Open("postgres", url.String())
 	if err != nil {
 		// log.Error().Err(err).Msg("failed to open postgress connection")
