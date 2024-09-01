@@ -12,6 +12,16 @@ func Qop[T any](cond bool, onTrue T, onFalse T) T {
 	return onFalse
 }
 
+func NonEmpty[T comparable](vals ...T) T {
+	var empty T
+	for _, val := range vals {
+		if val != empty {
+			return val
+		}
+	}
+	return empty
+}
+
 // CondExec - if cond is true run the trueFunc otherwise run the flase func
 func CondExec(cond bool, trueFunc, falseFunc func() error) error {
 	if cond {

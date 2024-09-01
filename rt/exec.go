@@ -1,6 +1,7 @@
 package rt
 
 import (
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -12,11 +13,16 @@ import (
 // TODO - add way to start command in background
 // TODO - simple way to get output as string
 
+var (
+	ErrCmdBuilderAlreadyUsed = errors.New("command builder already used")
+)
+
 type CmdBuilder struct {
 	Cmd  string
 	Env  map[string]string
 	Args []string
 
+	done   bool
 	stdout io.Writer
 	stdin  io.Reader
 	stderr io.Writer
@@ -26,6 +32,10 @@ func NewCmdBuilder(cmd string) *CmdBuilder {
 	return &CmdBuilder{
 		Cmd: cmd,
 	}
+}
+
+func (cb *CmdBuilder) Done() bool {
+	return cb.done
 }
 
 func (cb *CmdBuilder) WithEnv(name, value string) *CmdBuilder {
@@ -72,6 +82,12 @@ func (cb *CmdBuilder) Command() *exec.Cmd {
 }
 
 func (cb *CmdBuilder) Run() error {
+	if cb.done {
+		return errx.Errf(ErrCmdBuilderAlreadyUsed,
+			"this command builder has already been used")
+	}
+
+	cb.done = true
 	cmd := cb.Command()
 	if err := cmd.Run(); err != nil {
 		return errx.Wrap(err)
@@ -80,6 +96,12 @@ func (cb *CmdBuilder) Run() error {
 }
 
 func (cb *CmdBuilder) Start() (*os.Process, error) {
+	if cb.done {
+		return nil, errx.Errf(ErrCmdBuilderAlreadyUsed,
+			"this command builder has already been used")
+	}
+
+	cb.done = true
 	cmd := cb.Command()
 	if err := cmd.Start(); err != nil {
 		return nil, err
