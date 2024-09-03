@@ -1,4 +1,4 @@
-package rt
+package proc
 
 import (
 	"errors"
@@ -107,4 +107,13 @@ func (cb *CmdBuilder) Start() (*os.Process, error) {
 		return nil, err
 	}
 	return cmd.Process, nil
+}
+
+func (cb *CmdBuilder) ToCmdDesc(name string) *CmdDesc {
+	return &CmdDesc{
+		Name: name,
+		Path: cb.Cmd,
+		Args: cb.Args,
+		Env:  cb.Env,
+	}
 }

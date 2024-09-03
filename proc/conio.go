@@ -8,13 +8,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type nodeWriter struct {
+type writer struct {
 	name  string
 	inner io.Writer
-	style *lipgloss.Style
+	style lipgloss.Style
 }
 
-func (cw *nodeWriter) Write(data []byte) (int, error) {
+func (cw *writer) Write(data []byte) (int, error) {
 	strData := string(data)
 	lines := strings.Split(strData, "\n")
 	for _, ln := range lines {
@@ -30,14 +30,14 @@ func (cw *nodeWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func NewNodeWriter(
-	name string, target io.Writer, style *lipgloss.Style) io.Writer {
+func NewWriter(
+	name string, target io.Writer, style lipgloss.Style) io.Writer {
 	if len(name) < 10 {
 		name = fmt.Sprintf("%10s", name)
 	} else {
 		name = fmt.Sprintf("%8s..", name[:8])
 	}
-	return &nodeWriter{
+	return &writer{
 		name:  name,
 		inner: target,
 		style: style,

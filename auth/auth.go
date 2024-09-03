@@ -82,7 +82,7 @@ func Login(
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = user.Username()
-	claims["userId"] = user.Id()
+	claims["id"] = user.Id()
 	claims["exp"] = time.Now().Add(UserSessionTimeout).Unix()
 	claims["type"] = "user"
 

@@ -44,31 +44,37 @@ func getToken(ctx echo.Context) (token *jwt.Token, err error) {
 }
 
 // RetrieveSessionInfo - retrieves session information from JWT token
-func retrieveUserId(ctx echo.Context) (string, string, error) {
+func retrieveUserId(ctx echo.Context) (int64, string, string, error) {
 	token, err := getToken(ctx)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", "", errx.New("jwt.invalidClaims", "invalid claims in JWT")
+		return 0, "", "", errx.New("jwt.invalidClaims", "invalid claims in JWT")
 	}
 
-	userId, ok := claims["username"].(string)
+	userName, ok := claims["username"].(string)
 	if !ok {
-		return "", "", errx.New("jwt.invalidUserId",
+		return 0, "", "", errx.New("jwt.invalidUserId",
+			"couldnt find username in token")
+	}
+
+	id, ok := claims["id"].(int64)
+	if !ok {
+		return 0, "", "", errx.New("jwt.invalidUserId",
 			"couldnt find userId in token")
 	}
 
 	userType, _ := claims["type"].(string)
-	return userId, userType, nil
+	return id, userName, userType, nil
 }
 
 func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(etx echo.Context) error {
-			userId, userType, err := retrieveUserId(etx)
+			id, userName, userType, err := retrieveUserId(etx)
 			if err != nil {
 				return &echo.HTTPError{
 					// Code:     http.StatusForbidden,
@@ -81,7 +87,8 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			// This check is for non-DB users
 			if userType != "" && userType != "user" {
 				etx.Set("endpoint", ep)
-				etx.Set("userId", userId)
+				etx.Set("username", userName)
+				etx.Set("id", id)
 				return next(etx)
 			}
 
@@ -100,7 +107,7 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 			}
 
 			user, err := server.userRetriever.GetUser(
-				etx.Request().Context(), userId)
+				etx.Request().Context(), userName)
 			if err != nil {
 				return errx.Wrap(err)
 			}
@@ -117,7 +124,8 @@ func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
 
 			etx.Set("endpoint", ep)
 			etx.Set("user", user)
-			etx.Set("userId", userId)
+			etx.Set("username", userName)
+			etx.Set("id", id)
 
 			// Make user information part of the request context
 			gtx := context.WithValue(etx.Request().Context(), UserKey, user)
