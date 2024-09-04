@@ -3,15 +3,23 @@ package proc
 import (
 	"context"
 	"io"
+	"math/rand"
 	"os"
 	"os/exec"
+	"strconv"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/varunamachi/libx/data"
 )
 
+type cmd struct {
+	command *exec.Cmd
+	desc    *CmdDesc
+}
+
 type Manager struct {
-	gtx context.Context
+	gtx  context.Context
+	cmds map[string]cmd
 }
 
 func (man *Manager) Add(cb *CmdDesc) (uint, error) {
@@ -46,5 +54,13 @@ func (man *Manager) mkcmd(desc *CmdDesc) *exec.Cmd {
 }
 
 func procNameStyle() lipgloss.Style {
-	return lipgloss.NewStyle()
+
+	// TODO - make this better
+	// Choose light and dark colors and return them - probably not randomly
+	color := lipgloss.Color(strconv.Itoa(rand.Intn(256)))
+	return lipgloss.
+		NewStyle().
+		Foreground(color).
+		Bold(true).
+		Align(lipgloss.Left)
 }
