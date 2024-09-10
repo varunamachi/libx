@@ -2,6 +2,8 @@ package proc
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -10,8 +12,14 @@ import (
 	"sync"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/rs/zerolog/log"
 	"github.com/varunamachi/libx/data"
 	"github.com/varunamachi/libx/errx"
+)
+
+var (
+	ErrProcessNotFound = errors.New("process not found")
+	ErrCommandNotFound = errors.New("process not found")
 )
 
 type execdCmd struct {
@@ -36,18 +44,32 @@ func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
 	}
 	man.addToMap(cmd, cdesc)
 	go func() {
-		cmd.Wait()
+		if err := cmd.Wait(); err != nil {
+			fmt.Fprintln(cmd.Stderr, err)
+		}
+		log.Info().Str("name", cdesc.Name).Msg("process exited")
 		man.removeFromMap(cdesc.Name)
 	}()
 
 	return cmd.Process.Pid, nil
 }
 
-func (man *Manager) IsRunning(name string) (bool, error) {
-	return false, nil
-}
-
 func (man *Manager) Terminate(name string, forceKill bool) error {
+	cmd := man.Get(name)
+	if cmd == nil {
+		return errx.Errf(ErrCommandNotFound,
+			"command with name '%s' does not exit")
+	}
+
+	if cmd.Process == nil {
+		return errx.Errf(ErrProcessNotFound,
+			"command '%s' does not have a associated process", name)
+	}
+
+	if err := cmd.Process.Kill(); err != nil {
+		return errx.Errf(err, "failed to kill process '%d' for '%s'",
+			cmd.Process.Pid, name)
+	}
 	return nil
 }
 
