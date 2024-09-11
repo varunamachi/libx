@@ -15,10 +15,10 @@ type Server struct {
 	man    *proc.Manager
 }
 
-func (s *Server) Start(bindIp string, port int) error {
+func (s *Server) Start(bindIp string, port uint32) error {
 	s.server = httpx.NewServer(os.Stdout, nil)
 
-	if err := app.Serve(uint32(ctx.Uint("port"))); err != nil {
+	if err := s.server.Start(port); err != nil {
 		if err != http.ErrServerClosed {
 			return errx.Wrap(err)
 		}
