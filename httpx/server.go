@@ -50,6 +50,7 @@ type Server struct {
 	userRetriever   auth.UserRetriever
 	rootMiddlewares []echo.MiddlewareFunc
 	printAllAccess  bool
+	bindIP          string
 }
 
 func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
@@ -77,6 +78,11 @@ func (s *Server) WithPages(ep ...*Endpoint) *Server {
 	return s
 }
 
+func (s *Server) SetBindIP(ip string) *Server {
+	s.bindIP = ip
+	return s
+}
+
 func (s *Server) WithRootMiddlewares(mws ...echo.MiddlewareFunc) *Server {
 	s.rootMiddlewares = append(s.rootMiddlewares, mws...)
 	return s
@@ -90,7 +96,8 @@ func (s *Server) PrintAllAccess(enable bool) *Server {
 func (s *Server) Start(port uint32) error {
 	s.configure()
 	s.Print()
-	if err := s.echo.Start(fmt.Sprintf(":%d", port)); err != nil {
+	addr := fmt.Sprintf("%s:%d", s.bindIP, port)
+	if err := s.echo.Start(addr); err != nil {
 		return errx.Wrap(err)
 	}
 	log.Info().Uint32("port", port).Msg("server started")

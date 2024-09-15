@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -22,15 +23,10 @@ var (
 	ErrCommandNotFound = errors.New("process not found")
 )
 
-type execdCmd struct {
-	command *exec.Cmd
-	desc    *CmdDesc
-}
-
 type Manager struct {
 	mutex sync.Mutex
 	gtx   context.Context
-	cmds  map[string]execdCmd
+	cmds  map[string]CmdEntry
 }
 
 func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
@@ -83,10 +79,41 @@ func (man *Manager) Get(name string) *exec.Cmd {
 	return excmd.command
 }
 
+func (man *Manager) GetDesc(name string) *CmdDesc {
+	man.mutex.Lock()
+	defer man.mutex.Unlock()
+	excmd, found := man.cmds[name]
+	if !found {
+		return nil
+	}
+	return excmd.desc
+}
+
+func (man *Manager) List() []*CmdInfo {
+	man.mutex.Lock()
+	defer man.mutex.Unlock()
+
+	out := make([]*CmdInfo, 0, len(man.cmds))
+	for _, val := range man.cmds {
+		out = append(out, &CmdInfo{
+			desc:    val.desc,
+			started: val.started,
+		})
+	}
+
+	slices.SortFunc(out, func(a, b *CmdInfo) int {
+		if a.started.After(b.started) {
+			return 1
+		}
+		return -1
+	})
+	return out
+}
+
 func (man *Manager) addToMap(cmd *exec.Cmd, desc *CmdDesc) {
 	man.mutex.Lock()
 	defer man.mutex.Unlock()
-	man.cmds[desc.Name] = execdCmd{
+	man.cmds[desc.Name] = CmdEntry{
 		command: cmd,
 		desc:    desc,
 	}
@@ -100,6 +127,12 @@ func (man *Manager) removeFromMap(name string) {
 
 func (man *Manager) mkcmd(desc *CmdDesc) *exec.Cmd {
 	cmd := exec.CommandContext(man.gtx, desc.Path, desc.Args...)
+
+	if desc.EnvsForwarded {
+		// When envs are forwarded, we dont use server's envs
+		cmd.Env = make([]string, 0, len(desc.Env))
+	}
+
 	for k, v := range desc.Env {
 		cmd.Env = append(cmd.Env, k+"="+v)
 	}
