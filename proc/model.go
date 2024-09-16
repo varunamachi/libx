@@ -21,6 +21,6 @@ type CmdEntry struct {
 }
 
 type CmdInfo struct {
-	desc    *CmdDesc
-	started time.Time
+	Desc    *CmdDesc
+	Started time.Time
 }

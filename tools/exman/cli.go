@@ -1,11 +1,36 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx/httpx"
 	"github.com/varunamachi/libx/proc"
 )
+
+func serveCmd(gtx context.Context) *cli.Command {
+	return &cli.Command{
+		Name:        "serve",
+		Usage:       "Start the process manager server",
+		Description: "Start the process manager server",
+		Flags:       withServerFlags(),
+		Action: func(ctx *cli.Context) error {
+			server := Server{
+				server: httpx.NewServer(os.Stdout, nil),
+				man:    proc.NewManager(gtx),
+			}
+
+			err := server.Start("127.0.0.1", uint32(ctx.Uint("port")))
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
 
 func execCmd() *cli.Command {
 	return &cli.Command{
@@ -58,7 +83,18 @@ func listCmd() *cli.Command {
 		Name:        "list",
 		Usage:       "List commands running in exec-server",
 		Description: "List commands running in exec-server",
+		Flags:       withServerFlags(),
 		Action: func(ctx *cli.Context) error {
+			list, err := client(ctx).List(ctx.Context)
+			if err != nil {
+				return err
+			}
+
+			// TODO - add advanced printing
+			for _, ci := range list {
+				fmt.Println(ci.Desc.Name)
+			}
+
 			return nil
 		},
 	}
@@ -69,7 +105,24 @@ func stopCmd() *cli.Command {
 		Name:        "stop",
 		Usage:       "Stop a command running in exec-server",
 		Description: "Stop a command running in exec-server",
+		Flags: withServerFlags(
+			&cli.StringFlag{
+				Name:     "name",
+				Usage:    "name for this instance of the command",
+				Required: true,
+			},
+			&cli.BoolFlag{
+				Name:  "force",
+				Usage: "Force kill",
+				Value: false,
+			},
+		),
 		Action: func(ctx *cli.Context) error {
+			name := ctx.String("name")
+			err := client(ctx).Terminate(ctx.Context, name, ctx.Bool("force"))
+			if err != nil {
+				return err
+			}
 			return nil
 		},
 	}

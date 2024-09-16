@@ -29,6 +29,13 @@ type Manager struct {
 	cmds  map[string]CmdEntry
 }
 
+func NewManager(gtx context.Context) *Manager {
+	return &Manager{
+		gtx:  gtx,
+		cmds: map[string]CmdEntry{},
+	}
+}
+
 func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
 
 	cmd := man.mkcmd(cdesc)
@@ -96,13 +103,13 @@ func (man *Manager) List() []*CmdInfo {
 	out := make([]*CmdInfo, 0, len(man.cmds))
 	for _, val := range man.cmds {
 		out = append(out, &CmdInfo{
-			desc:    val.desc,
-			started: val.started,
+			Desc:    val.desc,
+			Started: val.started,
 		})
 	}
 
 	slices.SortFunc(out, func(a, b *CmdInfo) int {
-		if a.started.After(b.started) {
+		if a.Started.After(b.Started) {
 			return 1
 		}
 		return -1
