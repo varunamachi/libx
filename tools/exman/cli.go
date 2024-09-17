@@ -7,9 +7,46 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+	"github.com/varunamachi/libx"
 	"github.com/varunamachi/libx/httpx"
 	"github.com/varunamachi/libx/proc"
 )
+
+var GitTag = "--"
+var GitHash = "--"
+var GitBranch = "--"
+var BuildTime = "--"
+var BuildHost = "--"
+var BuildUser = "--"
+
+var bi = libx.BuildInfo{
+	GitTag:    GitTag,
+	GitHash:   GitHash,
+	GitBranch: GitBranch,
+	BuildTime: BuildTime,
+	BuildHost: BuildHost,
+	BuildUser: BuildUser,
+}
+
+func infoCmd() *cli.Command {
+	return &cli.Command{
+		Name:        "build-info",
+		Usage:       "Prints build info for the tool",
+		Description: "Prints build info for the tool",
+		Flags:       withServerFlags(),
+		Action: func(ctx *cli.Context) error {
+
+			fmt.Println("GitTag:    ", bi.GitTag)
+			fmt.Println("GitHash:   ", bi.GitHash)
+			fmt.Println("GitBranch: ", bi.GitBranch)
+			fmt.Println("BuildTime: ", bi.BuildTime)
+			fmt.Println("BuildHost: ", bi.BuildHost)
+			fmt.Println("BuildUser: ", bi.BuildUser)
+
+			return nil
+		},
+	}
+}
 
 func serveCmd(gtx context.Context) *cli.Command {
 	return &cli.Command{
