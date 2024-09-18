@@ -150,15 +150,15 @@ func (man *Manager) mkcmd(desc *CmdDesc) *exec.Cmd {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = NewWriter(
 		desc.Name,
-		data.Qop[io.Writer](cmd.Stdout == nil, cmd.Stdout, os.Stdout),
+		data.Qop[io.Writer](cmd.Stdout != nil, cmd.Stdout, os.Stdout),
 		procNameStyle(),
 	)
 	cmd.Stderr = NewWriter(
 		desc.Name,
-		data.Qop[io.Writer](cmd.Stderr == nil, cmd.Stderr, os.Stderr),
+		data.Qop[io.Writer](cmd.Stderr != nil, cmd.Stderr, os.Stderr),
 		procNameStyle(),
 	)
-	return nil
+	return cmd
 }
 
 func procNameStyle() lipgloss.Style {

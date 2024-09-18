@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -60,8 +62,18 @@ func serveCmd(gtx context.Context) *cli.Command {
 				man:    proc.NewManager(gtx),
 			}
 
-			err := server.Start("127.0.0.1", uint32(ctx.Uint("port")))
-			if err != nil {
+			// go func() {
+			// 	<-gtx.Done()
+			// 	fmt.Println("\nstopping server gracefully")
+			// 	if err := server.server.Close(); err != nil {
+			// 		log.Error().Err(err).Msg("failed to stop exec-server")
+			// 	}
+
+			// }()
+
+			err := server.Start(gtx, "127.0.0.1", uint32(ctx.Uint("port")))
+
+			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				return err
 			}
 			return nil

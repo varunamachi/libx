@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -102,6 +103,18 @@ func (s *Server) Start(port uint32) error {
 	}
 	log.Info().Uint32("port", port).Msg("server started")
 	return nil
+}
+
+func (s *Server) StartContext(gtx context.Context, port uint32) error {
+
+	go func() {
+		<-gtx.Done()
+		fmt.Println("\nstopping server gracefully")
+		if err := s.Close(); err != nil {
+			log.Error().Err(err).Msg("failed to stop exec-server")
+		}
+	}()
+	return s.Start(port)
 }
 
 func (s *Server) configure() {

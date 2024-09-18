@@ -70,4 +70,4 @@ go build \
 
 echo "Running...."
 echo
-"$root/_local/bin/exman" "$@"
+exec "$root/_local/bin/exman" "$@"

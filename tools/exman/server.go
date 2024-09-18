@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 
@@ -16,7 +17,7 @@ type Server struct {
 	man    *proc.Manager
 }
 
-func (s *Server) Start(bindIp string, port uint32) error {
+func (s *Server) Start(gtx context.Context, bindIp string, port uint32) error {
 	s.server = httpx.NewServer(os.Stdout, nil)
 
 	s.server.WithAPIs(
@@ -25,7 +26,7 @@ func (s *Server) Start(bindIp string, port uint32) error {
 		s.listEp(),
 	)
 
-	if err := s.server.Start(port); err != nil {
+	if err := s.server.StartContext(gtx, port); err != nil {
 		if err != http.ErrServerClosed {
 			return errx.Wrap(err)
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/httpx"
@@ -13,7 +14,8 @@ type Client struct {
 }
 
 func NewClient(port uint32) *Client {
-	client := httpx.NewClient("127.0.0.1", "")
+	url := fmt.Sprintf("http://127.0.0.1:%d", port)
+	client := httpx.NewClient(url, "")
 	return &Client{client: client}
 }
 
