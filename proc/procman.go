@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"sync"
@@ -45,6 +46,17 @@ func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
 			errx.Errf(err,
 				"failed to start command: %s - %s", cdesc.Name, cdesc.Path)
 	}
+	if cdesc.Name == "" {
+		if cmd.Process != nil {
+			cdesc.Name = fmt.Sprintf("%s [%d]",
+				filepath.Base(cmd.Path),
+				cmd.Process.Pid)
+		} else {
+			cdesc.Name = filepath.Base(cmd.Path)
+		}
+		setName(cmd, cdesc.Name)
+	}
+
 	man.addToMap(cmd, cdesc)
 	go func() {
 		if err := cmd.Wait(); err != nil {
@@ -171,4 +183,16 @@ func procNameStyle() lipgloss.Style {
 		Foreground(color).
 		Bold(true).
 		Align(lipgloss.Left)
+}
+
+func setName(cmd *exec.Cmd, name string) {
+	w, ok := cmd.Stdout.(*writer)
+	if ok {
+		w.name = name
+	}
+
+	w, ok = cmd.Stderr.(*writer)
+	if ok {
+		w.name = name
+	}
 }

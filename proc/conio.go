@@ -30,6 +30,10 @@ func (cw *writer) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
+func (cw *writer) SetName(name string) {
+	cw.name = name
+}
+
 func NewWriter(
 	name string, target io.Writer, style lipgloss.Style) io.Writer {
 	if len(name) < 10 {

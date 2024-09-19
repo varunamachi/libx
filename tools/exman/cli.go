@@ -8,8 +8,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx"
+	"github.com/varunamachi/libx/errx"
 	"github.com/varunamachi/libx/httpx"
 	"github.com/varunamachi/libx/proc"
 )
@@ -90,39 +92,68 @@ func execCmd() *cli.Command {
 			&cli.StringFlag{
 				Name:     "name",
 				Usage:    "name for this instance of the command",
-				Required: true,
+				Required: false,
+				Value:    "",
 			},
-			&cli.StringFlag{
-				Name:     "cmd",
-				Usage:    "executable path or name without arguments",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:     "args",
-				Usage:    "command arguments, space separated",
-				Required: true,
-			},
+			// &cli.StringFlag{
+			// 	Name:     "cmd",
+			// 	Usage:    "executable path or name without arguments",
+			// 	Required: true,
+			// },
+			// &cli.StringFlag{
+			// 	Name:     "args",
+			// 	Usage:    "command arguments, space separated",
+			// 	Required: true,
+			// },
 			&cli.BoolFlag{
 				Name:  "fwd-env",
 				Usage: "forward current env variables to server for this cmd",
 				Value: true,
 			},
-			&cli.BoolFlag{
+			&cli.StringSliceFlag{
 				Name:  "env",
-				Usage: "Env vars in the form of key1=value1,key2=value2",
-				Value: true,
+				Usage: "Env vars in the form of key1=value1",
+			},
+			&cli.StringFlag{
+				Name:  "cwd",
+				Usage: "executables current working directory",
 			},
 		),
 		Action: func(ctx *cli.Context) error {
+
+			cwd := ctx.String("cwd")
+			if cwd == "" {
+				c, err := os.Getwd()
+				if err != nil {
+					return errx.Errf(err, "failed to commands cwd")
+				}
+				cwd = c
+			}
+
+			cmdName := ctx.Args().First()
+			args := ctx.Args().Tail()
+
+			envs := map[string]string{}
+			for _, kv := range ctx.StringSlice("env") {
+				comps := strings.Split(kv, ",")
+				if len(comps) != 2 {
+					log.Warn().Str("envVar", kv).
+						Msg("invlid env variable given ignoring")
+					continue
+				}
+				envs[comps[0]] = comps[1]
+			}
+
 			cmd := &proc.CmdDesc{
 				Name:          ctx.String("name"),
-				Path:          ctx.String("cmd"),
-				Args:          strings.Fields(ctx.String("args")),
-				Env:           map[string]string{},
-				Cwd:           "",
+				Path:          cmdName,
+				Args:          args,
+				Env:           envs,
+				Cwd:           cwd,
 				EnvsForwarded: ctx.Bool("fwd-env"),
 			}
 			return client(ctx).Exec(ctx.Context, cmd)
+
 		},
 	}
 }
