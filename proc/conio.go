@@ -21,7 +21,7 @@ func (cw *writer) Write(data []byte) (int, error) {
 		if ln == "" || strings.Contains(ln, "[sudo] password for") {
 			continue
 		}
-		_, err := fmt.Fprintf(cw.inner, "%s | %2s\n",
+		_, err := fmt.Fprintf(cw.inner, "%16s | %2s\n",
 			cw.style.Render(cw.name), ln)
 		if err != nil {
 			return 0, err
@@ -31,15 +31,19 @@ func (cw *writer) Write(data []byte) (int, error) {
 }
 
 func (cw *writer) SetName(name string) {
-	cw.name = name
+	if len(name) < 12 {
+		cw.name = fmt.Sprintf("%12s", name)
+	} else {
+		cw.name = fmt.Sprintf("%110s..", name[:10])
+	}
 }
 
 func NewWriter(
 	name string, target io.Writer, style lipgloss.Style) io.Writer {
-	if len(name) < 10 {
-		name = fmt.Sprintf("%10s", name)
+	if len(name) < 12 {
+		name = fmt.Sprintf("%12s", name)
 	} else {
-		name = fmt.Sprintf("%8s..", name[:8])
+		name = fmt.Sprintf("%10s..", name[:10])
 	}
 	return &writer{
 		name:  name,

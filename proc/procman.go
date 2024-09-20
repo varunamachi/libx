@@ -48,7 +48,7 @@ func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
 	}
 	if cdesc.Name == "" {
 		if cmd.Process != nil {
-			cdesc.Name = fmt.Sprintf("%s [%d]",
+			cdesc.Name = fmt.Sprintf("%s-%d",
 				filepath.Base(cmd.Path),
 				cmd.Process.Pid)
 		} else {
@@ -188,11 +188,11 @@ func procNameStyle() lipgloss.Style {
 func setName(cmd *exec.Cmd, name string) {
 	w, ok := cmd.Stdout.(*writer)
 	if ok {
-		w.name = name
+		w.SetName(name)
 	}
 
 	w, ok = cmd.Stderr.(*writer)
 	if ok {
-		w.name = name
+		w.SetName(name)
 	}
 }
