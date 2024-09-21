@@ -54,35 +54,39 @@ func (t Type) String() string {
 	return "None"
 }
 
-type Event struct {
+type EventUserIdType interface {
+	~int | ~int64 | ~string
+}
+
+type Event[T EventUserIdType] struct {
 	Id        uint64           `json:"id" db:"id" bson:"id"`
 	Op        string           `json:"op" db:"op" bson:"op"`
 	Type      Type             `json:"type" db:"ev_type" bson:"type"`
-	UserId    int64            `json:"userId" db:"user_id" bson:"userId"`
+	UserId    T                `json:"userId" db:"user_id" bson:"userId"`
 	CreatedOn time.Time        `json:"createdOn" db:"created_on" bson:"createdOn"`
 	Errors    data.Vec[string] `json:"errors" db:"errors" bson:"errors"`
 	Metadata  data.M           `json:"metadata" db:"metadata" bson:"metadata"`
 }
 
-type Service interface {
-	AddEvent(gtx context.Context, event *Event) error
+type Service[T EventUserIdType] interface {
+	AddEvent(gtx context.Context, event *Event[T]) error
 }
 
-type Adder struct {
-	event   *Event
-	service Service
+type Adder[T EventUserIdType] struct {
+	event   *Event[T]
+	service Service[T]
 	gtx     context.Context
 }
 
-func NewAdder(
+func NewAdder[T EventUserIdType](
 	gtx context.Context,
-	service Service,
+	service Service[T],
 	op string,
-	userId int64,
-	md data.M) *Adder {
+	userId T,
+	md data.M) *Adder[T] {
 
-	return &Adder{
-		event: &Event{
+	return &Adder[T]{
+		event: &Event[T]{
 			Op:       op,
 			UserId:   userId,
 			Type:     None,
@@ -93,17 +97,17 @@ func NewAdder(
 	}
 }
 
-func (adder *Adder) SetType(t Type) *Adder {
+func (adder *Adder[T]) SetType(t Type) *Adder[T] {
 	adder.event.Type = t
 	return adder
 }
 
-func (adder *Adder) SetData(md data.M) *Adder {
+func (adder *Adder[T]) SetData(md data.M) *Adder[T] {
 	adder.event.Metadata = md
 	return adder
 }
 
-func (adder *Adder) AddData(name string, md any) *Adder {
+func (adder *Adder[T]) AddData(name string, md any) *Adder[T] {
 	if adder.event.Metadata == nil {
 		adder.event.Metadata = data.M{
 			name: md,
@@ -114,12 +118,12 @@ func (adder *Adder) AddData(name string, md any) *Adder {
 	return adder
 }
 
-func (adder *Adder) SetUser(userId int64) *Adder {
+func (adder *Adder[T]) SetUser(userId T) *Adder[T] {
 	adder.event.UserId = userId
 	return adder
 }
 
-func (adder *Adder) Commit(err error) error {
+func (adder *Adder[T]) Commit(err error) error {
 	if adder.event.Type == None {
 		adder.event.Type = data.Qop(err != nil, Error, Success)
 		adder.event.Errors = errx.StackArray(err)
@@ -131,7 +135,7 @@ func (adder *Adder) Commit(err error) error {
 	return err
 }
 
-func (adder *Adder) Errf(err error, fmtStr string, args ...any) error {
+func (adder *Adder[T]) Errf(err error, fmtStr string, args ...any) error {
 	err = errx.Errf(err, fmtStr, args...)
 	return adder.Commit(err)
 }
