@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-#!/bin/bash
-
-scriptDir="$(cd "$(dirname "$0")" || exit ; pwd -P)"
-root=$(readlink -f "$scriptDir/..")
-
 envFile="${scriptDir}/common.env"
 if [[ -f  "${envFile}" ]]; then
     set -o allexport
@@ -30,7 +25,7 @@ cd "$cmdDir" || exit 1
 git --version  >/dev/null 2>&1
 GIT_IS_AVAILABLE=$?
 if [ $GIT_IS_AVAILABLE -eq 0 ] &&  [ -z "$GIT_TAG" ]; then 
-    GIT_TAG=$(git describe --tag || echo 'latest')
+    GIT_TAG=$(git describe --tag 2> /dev/null || echo 'latest')
     GIT_HASH=$(git rev-parse --verify HEAD)
     GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     BUILD_TIME=$(date -Isec)

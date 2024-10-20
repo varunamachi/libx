@@ -41,7 +41,7 @@ func (c *Client) List(gtx context.Context) ([]*proc.CmdInfo, error) {
 func (c *Client) Terminate(
 	gtx context.Context, name string, force bool) error {
 	res := c.client.Build().
-		Path("/api/v1/cmds", name).
+		Path("/api/v1/cmd", name).
 		QBool("force", force).
 		Delete(gtx)
 	if err := res.Close(); err != nil {

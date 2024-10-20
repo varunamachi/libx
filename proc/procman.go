@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	ErrProcessNotFound = errors.New("process not found")
-	ErrCommandNotFound = errors.New("process not found")
+	ErrProcessNotFound   = errors.New("process not found")
+	ErrCommandNotFound   = errors.New("command not found")
+	ErrCommandNameExists = errors.New("command name exists")
 )
 
 type Manager struct {
@@ -38,9 +39,16 @@ func NewManager(gtx context.Context) *Manager {
 }
 
 func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
+	existing := man.Get(cdesc.Name)
+	if existing != nil {
+
+		pid := existing.Process.Pid
+		return pid, errx.Errf(ErrCommandNameExists,
+			"command with name '%s' already exists with PID '%d'",
+			cdesc.Name, pid)
+	}
 
 	cmd := man.mkcmd(cdesc)
-
 	if err := cmd.Start(); err != nil {
 		return -1,
 			errx.Errf(err,
@@ -62,7 +70,10 @@ func (man *Manager) Add(cdesc *CmdDesc) (int, error) {
 		if err := cmd.Wait(); err != nil {
 			fmt.Fprintln(cmd.Stderr, err)
 		}
-		log.Info().Str("name", cdesc.Name).Msg("process exited")
+		log.Info().
+			Str("name", cdesc.Name).
+			Int("exitCode", cmd.ProcessState.ExitCode()).
+			Msg("process exited")
 		man.removeFromMap(cdesc.Name)
 	}()
 
@@ -73,7 +84,7 @@ func (man *Manager) Terminate(name string, forceKill bool) error {
 	cmd := man.Get(name)
 	if cmd == nil {
 		return errx.Errf(ErrCommandNotFound,
-			"command with name '%s' does not exit")
+			"command with name '%s' does not exit", name)
 	}
 
 	if cmd.Process == nil {
