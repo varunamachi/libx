@@ -49,3 +49,15 @@ func (c *Client) Terminate(
 	}
 	return nil
 }
+
+func (c *Client) TerminateAll(
+	gtx context.Context, force bool) error {
+	res := c.client.Build().
+		Path("/api/v1/cmd").
+		QBool("force", force).
+		Delete(gtx)
+	if err := res.Close(); err != nil {
+		return errx.Errf(err, "failed to terminate cmds")
+	}
+	return nil
+}

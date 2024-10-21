@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/rs/zerolog/log"
 )
 
 func Gtx() (context.Context, context.CancelFunc) {
@@ -13,7 +15,8 @@ func Gtx() (context.Context, context.CancelFunc) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		<-sigs
+		sig := <-sigs
+		log.Warn().Str("signal", sig.String()).Msg("signal received")
 		cancel()
 		// code := 0
 		// if sig == syscall.SIGTERM {

@@ -26,6 +26,7 @@ func main() {
 			execCmd(),
 			listCmd(),
 			stopCmd(),
+			stopAllCmd(),
 			infoCmd(),
 		)
 

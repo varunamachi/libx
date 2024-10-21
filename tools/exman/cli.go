@@ -189,7 +189,7 @@ func stopCmd() *cli.Command {
 			&cli.StringFlag{
 				Name:     "name",
 				Usage:    "name for this instance of the command",
-				Required: true,
+				Required: false,
 			},
 			&cli.BoolFlag{
 				Name:  "force",
@@ -199,7 +199,32 @@ func stopCmd() *cli.Command {
 		),
 		Action: func(ctx *cli.Context) error {
 			name := ctx.String("name")
+			if name == "" {
+				name = ctx.Args().First()
+			}
 			err := client(ctx).Terminate(ctx.Context, name, ctx.Bool("force"))
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
+
+func stopAllCmd() *cli.Command {
+	return &cli.Command{
+		Name:        "stop-all",
+		Usage:       "Stop a command running in exec-server",
+		Description: "Stop a command running in exec-server",
+		Flags: withServerFlags(
+			&cli.BoolFlag{
+				Name:  "force",
+				Usage: "Force kill",
+				Value: false,
+			},
+		),
+		Action: func(ctx *cli.Context) error {
+			err := client(ctx).TerminateAll(ctx.Context, ctx.Bool("force"))
 			if err != nil {
 				return err
 			}

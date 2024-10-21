@@ -92,10 +92,33 @@ func (man *Manager) Terminate(name string, forceKill bool) error {
 			"command '%s' does not have a associated process", name)
 	}
 
-	if err := cmd.Process.Kill(); err != nil {
+	signal := data.Qop(forceKill, os.Kill, os.Interrupt)
+	if err := cmd.Process.Signal(signal); err != nil {
 		return errx.Errf(err, "failed to kill process '%d' for '%s'",
 			cmd.Process.Pid, name)
 	}
+	return nil
+}
+
+func (man *Manager) TerminateAll(forceKill bool) error {
+
+	signal := data.Qop(forceKill, os.Kill, os.Interrupt)
+	for _, value := range man.cmds {
+
+		cmd := value.command
+
+		if cmd.Process == nil {
+			return errx.Errf(ErrProcessNotFound,
+				"command '%s' does not have a associated process",
+				value.desc.Name)
+		}
+
+		log.Info().Str("processName", value.desc.Name).Msg("terminating...")
+		if err := cmd.Process.Signal(signal); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

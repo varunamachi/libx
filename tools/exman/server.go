@@ -24,6 +24,7 @@ func (s *Server) Start(gtx context.Context, bindIp string, port uint32) error {
 		s.executeEp(),
 		s.terminateEp(),
 		s.listEp(),
+		s.terminateAllEp(),
 	)
 
 	if err := s.server.StartContext(gtx, port); err != nil {
@@ -78,7 +79,30 @@ func (s *Server) terminateEp() *httpx.Endpoint {
 		Method:   echo.DELETE,
 		Path:     "cmd/:name",
 		Category: "cmd-exec",
-		Desc:     "Kill a process that was started using command/proc manager",
+		Desc:     "Terminate a process that was started using proc manager",
+		Version:  "v1",
+		Handler:  handler,
+	}
+}
+
+func (s *Server) terminateAllEp() *httpx.Endpoint {
+	handler := func(etx echo.Context) error {
+		pgr := httpx.NewParamGetter(etx)
+		force := pgr.QueryBoolOr("force", false)
+		if err := s.man.TerminateAll(force); err != nil {
+			return err
+		}
+
+		return httpx.SendJSON(etx, data.M{
+			"deleted": true,
+		})
+	}
+
+	return &httpx.Endpoint{
+		Method:   echo.DELETE,
+		Path:     "cmd",
+		Category: "cmd-exec",
+		Desc:     "Terminate all managed processes",
 		Version:  "v1",
 		Handler:  handler,
 	}
