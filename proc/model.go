@@ -23,4 +23,5 @@ type CmdEntry struct {
 type CmdInfo struct {
 	Desc    *CmdDesc
 	Started time.Time
+	PID     int
 }

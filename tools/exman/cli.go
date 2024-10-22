@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"github.com/varunamachi/libx"
@@ -170,11 +173,27 @@ func listCmd() *cli.Command {
 				return err
 			}
 
-			// TODO - add advanced printing
-			for _, ci := range list {
-				fmt.Println(ci.Desc.Name)
-			}
+			t := table.New().
+				Border(lipgloss.NormalBorder()).
+				BorderStyle(lipgloss.NewStyle().
+					Foreground(lipgloss.Color("99")),
+				).
+				StyleFunc(func(row, col int) lipgloss.Style {
+					return lipgloss.NewStyle().Padding(0, 2)
+				}).
+				Headers("NAME", "PID", "STARTED_AT")
 
+			rows := [][]string{}
+			for _, ci := range list {
+				rows = append(rows, []string{
+					ci.Desc.Name,
+					strconv.Itoa(ci.PID),
+					ci.Started.Format("2006 Jan 02 15:04:05"),
+				})
+			}
+			t.Rows(rows...)
+
+			fmt.Println(t)
 			return nil
 		},
 	}

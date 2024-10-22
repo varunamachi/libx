@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog/log"
@@ -148,9 +149,14 @@ func (man *Manager) List() []*CmdInfo {
 
 	out := make([]*CmdInfo, 0, len(man.cmds))
 	for _, val := range man.cmds {
+
+		if val.command.Process == nil {
+			continue
+		}
 		out = append(out, &CmdInfo{
 			Desc:    val.desc,
 			Started: val.started,
+			PID:     val.command.Process.Pid,
 		})
 	}
 
@@ -169,6 +175,7 @@ func (man *Manager) addToMap(cmd *exec.Cmd, desc *CmdDesc) {
 	man.cmds[desc.Name] = CmdEntry{
 		command: cmd,
 		desc:    desc,
+		started: time.Now(),
 	}
 }
 
