@@ -43,7 +43,7 @@ func main() {
 		}
 		log.Logger = log.Output(
 			zerolog.ConsoleWriter{
-				Out: proc.NewWriter("*****", os.Stderr, style)}).
+				Out: proc.NewWriter("*****", os.Stderr, style, false)}).
 			With().Logger()
 		return nil
 	}

@@ -217,13 +217,13 @@ func (rb *RequestBuilder) Exec(
 
 	req.Header = rb.headers
 	req.Header.Add("Content-Type", "application/json")
-	if rb.client.token == "" {
+	if rb.client.token != "" {
 		req.Header.Add("Authorization", "Bearer "+rb.client.token)
 	}
-	if rb.withAuth {
-		authHeader := fmt.Sprintf("Bearer %s", rb.client.token)
-		req.Header.Add("Authorization", authHeader)
-	}
+	// if rb.withAuth {
+	// 	authHeader := fmt.Sprintf("Bearer %s", rb.client.token)
+	// 	req.Header.Add("Authorization", authHeader)
+	// }
 
 	resp, err := rb.client.Do(req)
 	if err != nil {

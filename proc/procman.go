@@ -200,16 +200,19 @@ func (man *Manager) mkcmd(desc *CmdDesc) *exec.Cmd {
 		cmd.Dir = desc.Cwd
 	}
 
+	style := procNameStyle()
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = NewWriter(
 		desc.Name,
 		data.Qop[io.Writer](cmd.Stdout != nil, cmd.Stdout, os.Stdout),
-		procNameStyle(),
+		style,
+		false,
 	)
 	cmd.Stderr = NewWriter(
 		desc.Name,
 		data.Qop[io.Writer](cmd.Stderr != nil, cmd.Stderr, os.Stderr),
-		procNameStyle(),
+		style,
+		true,
 	)
 	return cmd
 }

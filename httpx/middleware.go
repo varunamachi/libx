@@ -61,14 +61,14 @@ func retrieveUserId(ctx echo.Context) (int64, string, string, error) {
 			"couldnt find username in token")
 	}
 
-	id, ok := claims["id"].(int64)
+	id, ok := claims["id"].(float64)
 	if !ok {
 		return 0, "", "", errx.New("jwt.invalidUserId",
 			"couldnt find userId in token")
 	}
 
 	userType, _ := claims["type"].(string)
-	return id, userName, userType, nil
+	return int64(id), userName, userType, nil
 }
 
 func getAuthzMiddleware(ep *Endpoint, server *Server) echo.MiddlewareFunc {
