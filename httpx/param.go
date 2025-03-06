@@ -322,7 +322,7 @@ func GetUsername(etx echo.Context) string {
 	return user.Username()
 }
 
-func GetUserId(etx echo.Context) int64 {
+func GetUserId(etx echo.Context) any {
 	ido := etx.Get("id")
 	if id, ok := ido.(int64); ok {
 		return id

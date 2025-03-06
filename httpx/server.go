@@ -52,6 +52,7 @@ type Server struct {
 	rootMiddlewares []echo.MiddlewareFunc
 	printAllAccess  bool
 	bindIP          string
+	printEndpoints  bool
 }
 
 func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
@@ -67,6 +68,12 @@ func NewServer(printer io.Writer, userGetter auth.UserRetriever) *Server {
 		printer:       printer,
 		userRetriever: userGetter,
 	}
+}
+
+func (s *Server) PrintConfig(eps bool, access bool) *Server {
+	s.printEndpoints = eps
+	s.printAllAccess = access
+	return s
 }
 
 func (s *Server) WithAPIs(ep ...*Endpoint) *Server {
@@ -96,7 +103,10 @@ func (s *Server) PrintAllAccess(enable bool) *Server {
 
 func (s *Server) Start(port uint32) error {
 	s.configure()
-	s.Print()
+
+	if s.printEndpoints {
+		s.Print()
+	}
 	addr := fmt.Sprintf("%s:%d", s.bindIP, port)
 	if err := s.echo.Start(addr); err != nil {
 		return errx.Wrap(err)

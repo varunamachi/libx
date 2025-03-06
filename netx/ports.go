@@ -29,17 +29,25 @@ func WaitForPorts(
 			return gtx.Err()
 		default:
 		}
-		conn, err := net.DialTimeout("tcp", hostPort, 1*time.Second)
-		if err == nil && conn != nil {
-			log.Info().Str("host", hostPort).Msg("port is now open")
+		if IsPortOpen(gtx, hostPort) {
 			open = true
-			conn.Close()
 			break
 		}
+
 	}
 	if !open {
 		return errx.Errf(ErrPortTimeout, "timeout waiting for '%s'", hostPort)
 	}
 
 	return nil
+}
+
+func IsPortOpen(gtx context.Context, hostPort string) bool {
+	conn, err := net.DialTimeout("tcp", hostPort, 1*time.Second)
+	if err == nil && conn != nil {
+		log.Info().Str("host", hostPort).Msg("port is now open")
+		conn.Close()
+		return true
+	}
+	return false
 }
